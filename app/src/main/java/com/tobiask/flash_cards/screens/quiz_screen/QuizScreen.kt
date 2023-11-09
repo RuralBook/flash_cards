@@ -77,6 +77,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
@@ -382,7 +384,7 @@ fun QuizCard(
                                         val routeWithArgs = "${Screen.DeckScreen.route}?id=${id}"
                                         navController.navigate(routeWithArgs)
                                     }
-                                }) { Text(text = "gut") }
+                                }) { Text(text = stringResource(id = R.string.difficulty_well)) }
 
                                 Button(onClick = {
                                     card?.let { viewModel.easy(it, dao = cardsDao, id) }
@@ -390,18 +392,22 @@ fun QuizCard(
                                     if (i.intValue < size - 1) {
                                         i.intValue++
                                         cardFace = CardFace.Front
-                                    } else {
-                                        val routeWithArgs = "${Screen.DeckScreen.route}?id=${id}"
-                                        navController.navigate(routeWithArgs)
                                     }
-                                }) { Text(text = "einfach") }
+                                }) { Text(text = stringResource(id = R.string.difficulty_easy)) }
                             }
                         }
                     }
                 }
             }
         }
+    } else {
+        EmptyDeck()
     }
+}
+
+@Composable
+fun EmptyDeck(){
+    Text(text = stringResource(id = R.string.empty_deck), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 31.sp)
 }
 
 

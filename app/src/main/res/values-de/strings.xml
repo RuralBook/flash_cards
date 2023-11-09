@@ -6,4 +6,19 @@
     <string name="answer">Antwort</string>
     <string name="difficulty_difficult">schwer</string>
     <string name="difficulty_again">nochmal</string>
+    <string name="difficulty_well">gut</string>
+    <string name="difficulty_easy">einfach</string>
+    <string name="update">Update!</string>
+    <string name="please_enter_a_name">Bitte gib einen Namen ein</string>
+    <string name="edit_deck">Deck bearbeiten</string>
+    <string name="name_of_the_deck">Name des Decks</string>
+    <string name="new_card">Neue Karte</string>
+    <string name="fronside">Vorderseite</string>
+    <string name="backside">Rückseite</string>
+    <string name="please_enter_a_valid_text">Bitte gib einen Validen Text ein</string>
+    <string name="edit_card">Karte bearbeiten</string>
+    <string name="reset_difficulty">Schwierigkeit zurücksetzten?</string>
+    <string name="new_deck">Neues Deck</string>
+    <string name="add">hinzufügen</string>
+    <string name="empty_deck"> Leeres Deck, \n nichts mehr zu lernen übrig!</string>
 </resources>

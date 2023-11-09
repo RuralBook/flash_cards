@@ -93,8 +93,8 @@ fun MainScreen(
         AddDeck(viewModel = viewModel, context)
     }
     /*if (setUp.isEmpty()){
-    SetUp(viewModel = viewModel, context = context)
-}*/
+        SetUp(viewModel = viewModel, context = context)
+    }*/
 
 
     Scaffold(
@@ -271,21 +271,21 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                         viewModel.popUp()
                         viewModel.addDeck(Deck(name = textState.value.text))
                     } else {
-                        Toast.makeText(context, "Bitte gib einen Namen ein", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
                             .show()
                     }
                 }) {
-                Text(text = "ok")
+                Text(text = stringResource(id = R.string.add))
             }
         },
         title = {
-            Text(text = "Neues Deck")
+            Text(text = stringResource(id = R.string.new_deck))
         },
         text = {
             TextField(
                 value = textState.value,
                 onValueChange = { textState.value = it },
-                label = { Text(text = "Name des Decks") }
+                label = { Text(text = stringResource(id = R.string.name_of_the_deck)) }
             )
         }
     )

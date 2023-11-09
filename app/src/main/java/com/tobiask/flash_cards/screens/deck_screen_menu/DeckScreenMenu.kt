@@ -6,6 +6,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,7 +64,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -69,6 +77,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.tobiask.flash_cards.R
 import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Deck
@@ -114,7 +123,6 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
     if (popUpAdd) {
         AddCard(viewModel = viewModel, context = context, deck = deck.value)
     }
-
 
     Scaffold(
         topBar = {
@@ -206,6 +214,7 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
             }
         }
     )
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -273,25 +282,25 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
         confirmButton = {
             Button(
                 onClick = {
-                    if (textState.value.text != "") {
+                    if (textState.value.text.isNotEmpty()) {
                         viewModel.popUpEdit()
                         viewModel.addDeck(Deck(name = textState.value.text, id = deck.id, parentDecks = deck.parentDecks, important = deck.important))
                     } else {
-                        Toast.makeText(context, "Bitte gib einen Namen ein", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
                             .show()
                     }
                 }) {
-                Text(text = "Update!")
+                Text(text = stringResource(id = R.string.update))
             }
         },
         title = {
-            Text(text = "Deck bearbeiten")
+            Text(text = stringResource(id = R.string.edit_deck))
         },
         text = {
             TextField(
                 value = textState.value,
                 onValueChange = { textState.value = it },
-                label = { Text(text = "Name des Decks") }
+                label = { Text(text = stringResource(id = R.string.name_of_the_deck)) }
             )
         }
     )
@@ -305,7 +314,7 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     var imageFrontUri by remember {
         mutableStateOf<Uri?>(null)
     }
-    val launcherFront = rememberLauncherForActivityResult(contract =
+    /*val launcherFront = rememberLauncherForActivityResult(contract =
     ActivityResultContracts.GetContent()) { uri: Uri? ->
         imageFrontUri = uri
     }
@@ -316,7 +325,7 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val launcherBack = rememberLauncherForActivityResult(contract =
     ActivityResultContracts.GetContent()) { uri: Uri? ->
         imageBackUri = uri
-    }
+    }*/
 
     AlertDialog(
         onDismissRequest = {
@@ -332,12 +341,12 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                                 front = textState.value.text,
                                 frontImg = if(imageFrontUri != null)imageFrontUri.toString() else "",
                                 back = textState1.value.text,
-                                backImg = if(imageBackUri != null)imageBackUri.toString() else "",
+                                backImg = "",
                                 deckId = deck.id,
                                 dueTo = LocalDate.now().toString())
                         )
                     } else {
-                        Toast.makeText(context, "Bitte gib einen Namen ein", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
                             .show()
                     }
                 }) {
@@ -345,18 +354,18 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
             }
         },
         title = {
-            Text(text = "Neue Karte")
+            Text(text = stringResource(id = R.string.new_card))
         },
         text = {
             Column {
                 TextField(
                     value = textState.value,
                     onValueChange = { textState.value = it },
-                    label = { Text(text = "Vorderseite") },
+                    label = { Text(text = stringResource(id = R.string.fronside)) },
                     maxLines = 3,
                     //minLines = 3)
                 )
-                Row {
+                /*Row {
                     IconButton(onClick = { launcherFront.launch("image/*") }) {
                         Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageFrontUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
                     }
@@ -364,16 +373,16 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                     Button(onClick = { imageFrontUri = null }) {
                         Text(text = "Clear image")
                     }
-                }
+                }*/*/
                 Spacer(modifier = Modifier.height(10.dp))
                 TextField(
                     value = textState1.value,
                     onValueChange = { textState1.value = it },
-                    label = { Text(text = "Rückseite") },
+                    label = { Text(text = stringResource(id = R.string.backside)) },
                     maxLines = 3,
                     //minLines = 3,
                 )
-                Row {
+                /*Row {
                     IconButton(onClick = { launcherBack.launch("image/*") }) {
                         Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageBackUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
                     }
@@ -381,7 +390,7 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                     Button(onClick = { imageFrontUri = null }) {
                         Text(text = "Clear image")
                     }
-                }
+                }*/*/
 
             }
         }
@@ -433,25 +442,24 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                         viewModel.updateCard(
                             updateCard
                         )
-                        Log.e("update", card.toString())
                         viewModel.popUpEditCard()
                     } else {
-                        Toast.makeText(context, "Bitte gib einen Validen Text ein", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, R.string.please_enter_a_valid_text, Toast.LENGTH_SHORT)
                             .show()
                     }
                 }) {
-                Text(text = "Update!")
+                Text(text = stringResource(id = R.string.update))
             }
         },
         title = {
-            Text(text = "Karte bearbeiten")
+            Text(text = stringResource(id = R.string.edit_card))
         },
         text = {
             Column {
                 TextField(
                     value = textState.value,
                     onValueChange = { textState.value = it },
-                    label = { Text(text = "Vorderseite") },
+                    label = { Text(text = stringResource(id = R.string.fronside)) },
                     maxLines = 4,
                     //minLines = 3
                 )
@@ -468,7 +476,7 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                 TextField(
                     value = textState1.value,
                     onValueChange = { textState1.value = it },
-                    label = { Text(text = "Rückseite") },
+                    label = { Text(text = stringResource(id = R.string.backside)) },
                     maxLines = 4,
                     //minLines = 3,
                 )
@@ -482,7 +490,7 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                     }
                 }*/*/
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = "schwierigkeit zurücksetzten?")
+                Text(text = stringResource(id = R.string.reset_difficulty))
                 Switch(checked = resetDifficulty, onCheckedChange = {resetDifficulty = it})
             }
         }
