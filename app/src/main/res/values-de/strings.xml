@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome">Hallo!</string>
+    <string name="front_first_card">vorderseite zuerst</string>
+    <string name="question">Frage</string>
+    <string name="answer">Antwort</string>
+    <string name="difficulty_difficult">schwer</string>
+    <string name="difficulty_again">nochmal</string>
+</resources>

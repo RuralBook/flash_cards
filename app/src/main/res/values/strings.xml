@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">flash cards</string>
+    <string name="welcome">Welcome back!</string>
+    <string name="front_first_card">front first?</string>
+    <string name="question">question</string>
+    <string name="answer">answer</string>
+    <string name="difficulty_difficult">difficult</string>
+    <string name="difficulty_again">again</string>
+</resources>
