@@ -293,8 +293,7 @@ fun QuizCard(
                             back = {
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(MaterialTheme.colorScheme.background),
+                                        .fillMaxSize(),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     card?.let {
