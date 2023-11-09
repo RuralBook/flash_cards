@@ -30,7 +30,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.Switch
@@ -41,7 +43,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -65,8 +69,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -84,6 +92,8 @@ import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.navigation.Screen
 import com.tobiask.flash_cards.screens.main_screen.DeckCard
+import com.tobiask.flash_cards.screens.quiz_screen.CardFace
+import com.tobiask.flash_cards.screens.quiz_screen.FlipCard
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
 import java.time.LocalDate
@@ -159,7 +169,7 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                                 navController.navigate(routeWithArgs)
                             }
                     ){
-                        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, Modifier.size(35.dp, 35.dp))
+                        Icon(imageVector = Icons.Default.PlayCircleOutline, contentDescription = null, Modifier.size(35.dp, 35.dp))
                     }
                 }
             }
@@ -223,7 +233,6 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
 
     val popUpEditCard by viewModel.showPopUpEditCard.collectAsState()
 
-
     if (popUpEditCard) {
             EditCard(
                 viewModel = viewModel,
@@ -231,6 +240,12 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
                 card = card
             )
     }
+
+    var front by remember {
+        mutableStateOf(true)
+    }
+
+    val haptic = LocalHapticFeedback.current
 
     ElevatedCard(
         modifier = Modifier
@@ -245,6 +260,10 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
                 onClick = {
                     viewModel.editCardValue(card)
                     viewModel.popUpEditCard()
+                },
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    front = !front
                 }
             )
         ) {
@@ -258,9 +277,9 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
                     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
                         Text(
                             modifier = Modifier.padding(start = 20.dp, top = 20.dp),
-                            text = card.front,
+                            text = if (front) card.front else card.back,
                             fontSize = 25.sp,
-                            textDecoration = TextDecoration.Underline
+                            fontStyle = if (front) FontStyle.Normal else FontStyle.Italic
                         )
                     }
                 }
@@ -277,7 +296,7 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val textState = remember { mutableStateOf(TextFieldValue(deck.name)) }
     AlertDialog(
         onDismissRequest = {
-            viewModel.popUpEditCard()
+            viewModel.popUpEdit()
         },
         confirmButton = {
             Button(
