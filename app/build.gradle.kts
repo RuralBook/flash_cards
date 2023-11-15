@@ -14,7 +14,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.1.5"
+        versionName = "1.1.5 Patch-1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -89,4 +89,7 @@ dependencies {
 
     //web images
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    //Splashscreen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

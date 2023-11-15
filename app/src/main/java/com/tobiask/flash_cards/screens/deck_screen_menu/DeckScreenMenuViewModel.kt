@@ -71,20 +71,6 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, deckId:
         }
     }
 
-    fun getQuizCards(cards: List<Card>): IntArray{
-        var ids = intArrayOf()
-        val today = LocalDate.now()
-        for(card in cards){
-            val date = LocalDate.parse(card.dueTo)
-            Log.e("datum", "$date +  $today")
-            if (date.isBefore(today) || date.isEqual(today)){
-                ids = ids.plus(card.id)
-            }
-        }
-        Log.e("ids", ids.size.toString())
-        return ids
-    }
-
     fun converter(cards: List<Card>): MutableList<QuizCards>{
         val quizCards = mutableListOf<QuizCards>()
         val today = LocalDate.now()
@@ -126,7 +112,7 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, deckId:
         }
     }
 
-    fun dificult(card: QuizCards, dao: CardsDao, deckId:Int): QuizCards{
+    fun difficult(card: QuizCards, dao: CardsDao, deckId:Int): QuizCards{
         if (card.difficulty == 1) card.difficultyTimes +=1 else card.difficultyTimes = 0
         card.difficulty = 1
         viewModelScope.launch {

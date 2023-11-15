@@ -39,45 +39,6 @@ enum class CardFace(val angle: Float) {
     abstract val next: CardFace
 }
 
-@Composable
-fun TestQuiz(){
-    var cardFace by remember {
-    mutableStateOf(CardFace.Front)
-}
-
-    Box(modifier = Modifier.fillMaxSize()){
-        FlipCard(
-            cardFace = cardFace,
-            onClick = { cardFace = cardFace.next },
-            modifier = Modifier
-                .fillMaxWidth(.5f)
-                .aspectRatio(1f),
-            front = {
-                Box(
-                    modifier = Modifier.fillMaxSize().background(Color.Red),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "Front",
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
-                }
-            },
-            back = {
-                Box(
-                    modifier = Modifier.fillMaxSize().background(Color.Blue),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "Back",
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
-                }
-            },
-        )
-
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

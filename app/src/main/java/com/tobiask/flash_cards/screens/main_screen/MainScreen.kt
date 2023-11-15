@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,8 +33,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -40,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -59,18 +64,18 @@ import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.ConfigDao
 import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
+import com.tobiask.flash_cards.database.Folder
+import com.tobiask.flash_cards.database.FolderDao
 import com.tobiask.flash_cards.navigation.Screen
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
 
-@OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class
-)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(
     navController: NavController,
     dao: DecksDAO,
-    configDao: ConfigDao,
+    folderDao: FolderDao,
     cardsDao: CardsDao
 ) {
 
@@ -80,21 +85,22 @@ fun MainScreen(
         factory =
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MainScreenViewModel(dao, configDao, cardsDao) as T
+                return MainScreenViewModel(dao, folderDao, cardsDao) as T
             }
         }
     )
 
     rememberScrollState()
     val popupStateAdd by viewModel.showPopUp.collectAsState()
-    //val setUp by viewModel.configDao.getSetUpData().collectAsState(initial = emptyList())
     val decks = viewModel.dao.getAllDecks().collectAsState(initial = emptyList())
+    val folder = viewModel.folderDao.getAllFolder().collectAsState(initial = emptyList())
     if (popupStateAdd) {
         AddDeck(viewModel = viewModel, context)
     }
-    /*if (setUp.isEmpty()){
-        SetUp(viewModel = viewModel, context = context)
-    }*/
+
+    var decksShown by remember {
+        mutableStateOf(true)
+    }
 
 
     Scaffold(
@@ -128,6 +134,7 @@ fun MainScreen(
             }
         }
     ) {
+
         LazyColumn(
             modifier = Modifier
                 .padding(
@@ -140,27 +147,68 @@ fun MainScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            itemsIndexed(decks.value) { _, row ->
-                RevealSwipe(
-                    modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
-                    directions = setOf(
-                        RevealDirection.EndToStart
-                    ),
-                    hiddenContentEnd = {
-                        Icon(
-                            modifier = Modifier.padding(horizontal = 25.dp),
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondary
-                        )
-                    },
-                    backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
-                    onBackgroundEndClick = {
-                        viewModel.deleteCards(row.id)
-                        viewModel.delDeck(row)
-                    }
+            item {
+                Row(
+                    Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    DeckCard(deck = row, viewModel, navController)
+                    TextButton(onClick = { decksShown = true }) {
+                        Text(text = "Decks")
+                    }
+                    TextButton(onClick = { decksShown = false }) {
+                        Text(text = "Folder")
+                    }
+                }
+                Spacer(modifier = Modifier.height(25.dp))
+            }
+            if (decksShown) {
+                itemsIndexed(decks.value) { _, row ->
+                    RevealSwipe(
+                        modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
+                        directions = setOf(
+                            RevealDirection.EndToStart
+                        ),
+                        hiddenContentEnd = {
+                            Icon(
+                                modifier = Modifier.padding(horizontal = 25.dp),
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        },
+                        backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
+                        onBackgroundEndClick = {
+                            viewModel.deleteCards(row.id)
+                            viewModel.delDeck(row)
+                        }
+                    ) {
+                        DeckCard(deck = row, navController)
+                    }
+                }
+            } else {
+                itemsIndexed(folder.value) { _, row ->
+                    RevealSwipe(
+                        modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
+                        directions = setOf(
+                            RevealDirection.EndToStart
+                        ),
+                        hiddenContentEnd = {
+                            Icon(
+                                modifier = Modifier.padding(horizontal = 25.dp),
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        },
+                        backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
+                        onBackgroundEndClick = {
+                            //viewModel.deleteCards(row.id)
+                            //viewModel.delDeck(row)
+                        }
+                    ) {
+                        FolderCard(folder = row, navController = navController)
+                    }
                 }
             }
         }
@@ -169,7 +217,7 @@ fun MainScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DeckCard(deck: Deck, viewModel: MainScreenViewModel, navController: NavController) {
+fun DeckCard(deck: Deck, navController: NavController) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -197,6 +245,46 @@ fun DeckCard(deck: Deck, viewModel: MainScreenViewModel, navController: NavContr
                         Text(
                             modifier = Modifier.padding(top = 20.dp),
                             text = deck.name,
+                            fontSize = 25.sp,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun FolderCard(folder: Folder, navController: NavController) {
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .requiredHeight(175.dp)
+            .padding(bottom = 10.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Box(Modifier
+            .fillMaxSize()
+            .combinedClickable(
+                onClick = {
+                    val routeWithArgs = "${Screen.FolderScreen.route}?id=${folder.id}"
+                    navController.navigate(routeWithArgs)
+                }
+            )
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+                        Text(
+                            modifier = Modifier.padding(top = 20.dp),
+                            text = folder.name,
                             fontSize = 25.sp,
                             textDecoration = TextDecoration.Underline
                         )
@@ -259,7 +347,8 @@ AlertDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
-    val textState = remember { mutableStateOf(TextFieldValue()) }
+    val name = remember { mutableStateOf(TextFieldValue()) }
+    var isDeck by remember { mutableStateOf(true) }
     AlertDialog(
         onDismissRequest = {
             viewModel.popUp()
@@ -267,9 +356,14 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
         confirmButton = {
             Button(
                 onClick = {
-                    if (textState.value.text.isNotEmpty()) {
-                        viewModel.popUp()
-                        viewModel.addDeck(Deck(name = textState.value.text))
+                    if (name.value.text.isNotEmpty()) {
+                        if (isDeck) {
+                            viewModel.popUp()
+                            viewModel.addDeck(Deck(name = name.value.text))
+                        } else {
+                            viewModel.popUp()
+                            viewModel.addFolder(Folder(name = name.value.text, parentFolder = 0))
+                        }
                     } else {
                         Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
                             .show()
@@ -279,12 +373,14 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
             }
         },
         title = {
-            Text(text = stringResource(id = R.string.new_deck))
+            TextButton(onClick = { isDeck = !isDeck }) {
+                Text(text = if (isDeck) stringResource(id = R.string.new_deck) else "new Folder")
+            }
         },
         text = {
             TextField(
-                value = textState.value,
-                onValueChange = { textState.value = it },
+                value = name.value,
+                onValueChange = { name.value = it },
                 label = { Text(text = stringResource(id = R.string.name_of_the_deck)) }
             )
         }

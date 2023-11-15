@@ -303,7 +303,7 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                 onClick = {
                     if (textState.value.text.isNotEmpty()) {
                         viewModel.popUpEdit()
-                        viewModel.addDeck(Deck(name = textState.value.text, id = deck.id, parentDecks = deck.parentDecks, important = deck.important))
+                        viewModel.addDeck(Deck(name = textState.value.text, id = deck.id, parentFolder = deck.parentFolder, important = deck.important))
                     } else {
                         Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
                             .show()
@@ -362,6 +362,7 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                                 back = textState1.value.text,
                                 backImg = "",
                                 deckId = deck.id,
+                                folderRoute = 0,
                                 dueTo = LocalDate.now().toString())
                         )
                     } else {
@@ -423,22 +424,6 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
     val textState1 = remember { mutableStateOf(TextFieldValue(card.back)) }
     var resetDifficulty by remember { mutableStateOf(false) }
 
-    /*var imageFrontUri by remember {
-        mutableStateOf<Uri?>(if (card.frontImg.isEmpty()) null else card.frontImg.toUri())
-    }
-    val launcherFront = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageFrontUri = uri
-    }
-
-    var imageBackUri by remember {
-        mutableStateOf<Uri?>(if (card.backImg.isEmpty()) null else card.backImg.toUri())
-    }
-    val launcherBack = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageBackUri = uri
-    }*/
-
     AlertDialog(
         onDismissRequest = {
             viewModel.popUpEditCard()
@@ -451,12 +436,11 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                             id =card.id,
                             deckId = card.deckId,
                             front = textState.value.text,
-                            //frontImg = if(imageFrontUri != null)imageFrontUri.toString() else "",
                             back = textState1.value.text,
-                            //backImg = if(imageBackUri != null)imageBackUri.toString() else "",
-                            difficulty = card.difficulty,
-                            difficultyTimes = card.difficultyTimes,
-                            dueTo = card.dueTo
+                            folderRoute = 0,
+                            difficulty = if(!resetDifficulty) card.difficulty else 0,
+                            difficultyTimes = if(!resetDifficulty) card.difficultyTimes else 0,
+                            dueTo = if(!resetDifficulty) card.dueTo else LocalDate.now().toString()
                         )
                         viewModel.updateCard(
                             updateCard

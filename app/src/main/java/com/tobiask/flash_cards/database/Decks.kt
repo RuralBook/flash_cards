@@ -13,7 +13,7 @@ data class Deck(
 
     var important: Boolean = false,
 
-    val parentDecks: String = ""
+    val parentFolder: Int = 0
 )
 
 @Entity
@@ -22,6 +22,8 @@ data class Card(
     val id: Int = 0,
 
     val deckId: Int,
+
+    val folderRoute: Int = 0,
 
     val front: String,
     val frontImg: String = "",
@@ -33,6 +35,16 @@ data class Card(
 
     val difficulty: Int = 0,
     var difficultyTimes: Int = 0
+)
+
+@Entity
+data class Folder(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+
+    val name: String,
+
+    val parentFolder: Int = 0
 )
 
 @Entity

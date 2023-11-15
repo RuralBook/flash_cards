@@ -11,13 +11,15 @@ import com.tobiask.flash_cards.database.Config
 import com.tobiask.flash_cards.database.ConfigDao
 import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
+import com.tobiask.flash_cards.database.Folder
+import com.tobiask.flash_cards.database.FolderDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
-class MainScreenViewModel(val dao: DecksDAO, val configDao: ConfigDao, val cardsDao: CardsDao): ViewModel() {
+class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cardsDao: CardsDao): ViewModel() {
     private val _showPopUp = MutableStateFlow(false)
     val showPopUp = _showPopUp.asStateFlow()
 
@@ -32,19 +34,22 @@ class MainScreenViewModel(val dao: DecksDAO, val configDao: ConfigDao, val cards
         _showPopUpSetUp.value = !_showPopUpSetUp.value
     }
 
+    val folder = arrayOf<String>("schule", "privat", "uni", "informatik")
+
 
     //DATABASE FUNKTIONEN:
     //----------------------------------------------------------------------------------------------
 
-    fun setUpDB(config: Config){
-        viewModelScope.launch {
-            configDao.insertConfig(config)
-        }
-    }
 
     fun addDeck(deck: Deck){
         viewModelScope.launch {
             dao.addDeck(deck)
+        }
+    }
+
+    fun addFolder(folder: Folder){
+        viewModelScope.launch {
+            folderDao.insertFolder(folder)
         }
     }
 
@@ -56,7 +61,7 @@ class MainScreenViewModel(val dao: DecksDAO, val configDao: ConfigDao, val cards
 
     fun delDeck(deck: Deck) {
         viewModelScope.launch {
-            dao.delAllDecksWithParent(deck.parentDecks+"/"+deck.name)
+            //dao.delAllDecksWithParent(deck.parentDecks+"/"+deck.name)
             dao.deleteDeck(deck)
         }
     }

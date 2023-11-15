@@ -20,14 +20,14 @@ interface DecksDAO {
     @Query("SELECT * FROM deck WHERE id LIKE :id1")
     fun getDeck(id1: Int): Flow<Deck>
 
-    @Query("SELECT * FROM deck WHERE parentDecks LIKE '' ORDER BY important desc")
+    @Query("SELECT * FROM deck WHERE parentFolder LIKE 0 ORDER BY important desc")
     fun getAllDecks(): Flow<List<Deck>>
 
-    @Query("SELECT * FROM deck WHERE parentDecks LIKE :parent ORDER BY important desc")
-    fun getAllDecksWithParent(parent: String): Flow<List<Deck>>
+    @Query("SELECT * FROM deck WHERE parentFolder LIKE :parent")
+    fun getAllDecksWithParent(parent: Int): Flow<List<Deck>>
 
-    @Query("DELETE FROM deck WHERE parentDecks LIKE :parent")
-    suspend fun delAllDecksWithParent(parent: String)
+    @Query("DELETE FROM deck WHERE parentFolder LIKE :parent")
+    suspend fun delAllDecksWithParent(parent: Int)
 
     @Update(Deck::class)
     suspend fun addImportance(decks: Deck)
@@ -50,8 +50,8 @@ interface CardsDao {
     @Query("SELECT * FROM card WHERE deckId LIKE :id")
     fun getCards(id: Int): Flow<List<Card>>
 
-    @Query("SELECT backImg AND frontImg FROM card WHERE id LIKE :id")
-    fun getUri(id: Int): Flow<String>
+    @Query("SELECT backImg AND frontImg FROM card WHERE id LIKE :id1")
+    fun getUri(id1: Int): Flow<String>
 }
 
 @Dao
@@ -61,4 +61,18 @@ interface ConfigDao {
 
     @Query("SELECT * FROM config WHERE id LIKE 1")
     fun getSetUpData(): Flow<List<Config>>
+}
+
+@Dao
+interface FolderDao {
+    @Query("SELECT * FROM folder WHERE id LIKE :id")
+    fun getFolder(id: Int): Flow<Folder>
+    @Insert(Folder::class)
+    suspend fun insertFolder(folder: Folder)
+
+    @Update(Folder::class)
+    suspend fun updateFolder(folder: Folder)
+
+    @Query("SELECT * FROM folder")
+    fun getAllFolder(): Flow<List<Folder>>
 }

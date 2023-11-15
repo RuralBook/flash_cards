@@ -17,6 +17,7 @@ import androidx.room.Room
 import com.tobiask.flash_cards.database.FlashCardsDatabase
 import com.tobiask.flash_cards.navigation.Screen
 import com.tobiask.flash_cards.screens.deck_screen_menu.DeckScreenMenu
+import com.tobiask.flash_cards.screens.folder_screen_menu.FolderScreenMenu
 import com.tobiask.flash_cards.screens.main_screen.MainScreen
 import com.tobiask.flash_cards.screens.quiz_screen.QuizScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
@@ -42,7 +43,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = Screen.MainScreen.route){
                         composable(route = Screen.MainScreen.route) {
-                            MainScreen(navController, db.decksDao, db.configDao, db.cardsDao)
+                            MainScreen(navController, db.decksDao, db.folderDao, db.cardsDao)
                         }
 
                         composable(route = "${Screen.DeckScreen.route}?id={id}" ,arguments = listOf(
@@ -57,6 +58,18 @@ class MainActivity : ComponentActivity() {
                             DeckScreenMenu(dao = db.decksDao, daoCard = db.cardsDao,id = id, navController)
                         }
 
+                        composable(route = "${Screen.FolderScreen.route}?id={id}" ,arguments = listOf(
+                            navArgument("id") {
+                                type = NavType.IntType
+                                defaultValue = 0
+                                nullable = false
+                            }
+                        )
+                        ) { entry ->
+                            val id = entry.arguments?.getInt("id") ?: 0
+                            FolderScreenMenu(dao = db.decksDao, daoFolder = db.folderDao, id, navController)
+                        }
+
                         composable(route = "${Screen.QuizScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
                                 type = NavType.IntType
@@ -66,7 +79,7 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao ,navController = navController)
+                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao)
                         }
                     }
                 }
