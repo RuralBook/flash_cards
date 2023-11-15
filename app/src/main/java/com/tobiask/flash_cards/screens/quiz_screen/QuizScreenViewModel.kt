@@ -26,13 +26,13 @@ class QuizScreenViewModel(val dao: CardsDao): ViewModel() {
     /*private val _cardFace= MutableStateFlow(CardFace.Front)
     val cardFace = _cardFace.asStateFlow()*/
 
-    fun converter(cards: List<Card>): List<QuizCards>{
+    fun converter(cards: List<Card>): MutableList<QuizCards>{
         val quizCards = mutableListOf<QuizCards>()
         for (card in cards){
             val buffer = QuizCards(id = card.id, frontSide = card.front, frontSideImg = Uri.parse(card.frontImg) ,backSide = card.back, backSideImg = Uri.parse(card.backImg) , oldDifficulty = card.difficulty, difficulty = card.difficulty, difficultyTimes = card.difficultyTimes)
             quizCards.add(buffer)
         }
-        return quizCards
+        return quizCards.toMutableList()
     }
 
     fun getQuizCards(cards: List<Card>): List<Card>{

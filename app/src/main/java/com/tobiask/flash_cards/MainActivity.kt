@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            QuizScreen(id = id, dao = db.cardsDao, navController = navController)
+                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao ,navController = navController)
                         }
                     }
                 }

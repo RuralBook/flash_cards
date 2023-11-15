@@ -109,14 +109,14 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
         factory =
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DeckScreenMenuViewModel(dao, daoCard) as T
+                return DeckScreenMenuViewModel(dao, daoCard, id) as T
             }
         }
     )
     val deck = viewModel.dao.getDeck(id).collectAsState(initial = Deck(0, ""))
     val popUpEdit by viewModel.showPopUpEdit.collectAsState()
 
-    val cards = viewModel.daoCards.getCards(deck.value.id).collectAsState(initial = emptyList())
+    val cards = viewModel.cards.collectAsState(initial = emptyList()) //viewModel.daoCards.getCards(deck.value.id).collectAsState(initial = emptyList())
 
     if (popUpEdit) {
         EditDeck(
