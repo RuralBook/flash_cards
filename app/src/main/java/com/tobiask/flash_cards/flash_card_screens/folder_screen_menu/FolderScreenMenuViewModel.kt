@@ -1,14 +1,8 @@
-package com.tobiask.flash_cards.screens.folder_screen_menu
+package com.tobiask.flash_cards.flash_card_screens.folder_screen_menu
 
-import android.net.Uri
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tobiask.flash_cards.QuizCards
 import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Deck
@@ -17,11 +11,12 @@ import com.tobiask.flash_cards.database.Folder
 import com.tobiask.flash_cards.database.FolderDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.util.Date
 
-class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, folderId: Int) : ViewModel() {
+class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao,val daoCards: CardsDao ,folderId: Int) : ViewModel() {
 
     val decks = dao.getAllDecksWithParent(folderId)
 
@@ -34,9 +29,6 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
     private val _showPopUpEditFolder = MutableStateFlow(false)
     val showPopUpEditFolder = _showPopUpEditFolder.asStateFlow()
 
-    fun editCardValue(card: Card): Card{
-        return card
-    }
 
     fun popUpAdd() {
         _showPopUpAdd.value = !_showPopUpAdd.value
@@ -56,11 +48,6 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
         }
     }
 
-    fun deleteFolder(folder: Folder) {
-        viewModelScope.launch {
-            daoFolder.deleteFolder(folder)
-        }
-    }
 
     fun addDeck(deck: Deck) {
         viewModelScope.launch {
@@ -68,20 +55,32 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
         }
     }
 
-    fun addFolder(folder: Folder) {
+    fun getToLearnCards(id: Int): Int{
+        var cards = emptyList<Card>()
         viewModelScope.launch {
-            daoFolder.insertFolder(folder)
+            cards = daoCards.getCardsToLearn(id)
         }
+
+        var ret = 0
+        val today = LocalDate.now()
+        for (card in cards){
+            val dueTo = LocalDate.parse(card.dueTo)
+            if (dueTo.isEqual(today) || dueTo.isBefore(today)){
+                ret++
+            }
+        }
+        return  ret
     }
 
-    fun delOneDeck(folder:Folder) {
+
+    fun delOneDeck(deck: Deck) {
         viewModelScope.launch {
-            daoFolder.insertFolder(folder)
+            dao.deleteDeck(deck)
         }
     }
-    fun updateDecks(folder:Folder) {
+    fun updateDecks(deck: Deck) {
         viewModelScope.launch {
-            daoFolder.updateFolder(folder)
+            dao.addDeck(deck)
         }
     }
 }

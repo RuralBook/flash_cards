@@ -13,8 +13,8 @@ android {
         applicationId = "com.tobiask.flash_cards"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.1.5 Patch-1"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -23,6 +23,12 @@ android {
     }
 
     buildTypes {
+
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -89,7 +95,4 @@ dependencies {
 
     //web images
     implementation("io.coil-kt:coil-compose:2.5.0")
-
-    //Splashscreen
-    implementation("androidx.core:core-splashscreen:1.0.1")
 }

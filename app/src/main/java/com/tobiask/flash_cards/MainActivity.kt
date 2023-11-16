@@ -16,10 +16,11 @@ import androidx.navigation.navArgument
 import androidx.room.Room
 import com.tobiask.flash_cards.database.FlashCardsDatabase
 import com.tobiask.flash_cards.navigation.Screen
-import com.tobiask.flash_cards.screens.deck_screen_menu.DeckScreenMenu
-import com.tobiask.flash_cards.screens.folder_screen_menu.FolderScreenMenu
-import com.tobiask.flash_cards.screens.main_screen.MainScreen
-import com.tobiask.flash_cards.screens.quiz_screen.QuizScreen
+import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenu
+import com.tobiask.flash_cards.flash_card_screens.folder_screen_menu.FolderScreenMenu
+import com.tobiask.flash_cards.flash_card_screens.main_screen.MainScreen
+import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreen
+import com.tobiask.flash_cards.flash_card_screens.training_quiz_screen.TrainingQuizScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,7 +36,6 @@ class MainActivity : ComponentActivity() {
                         "FlashCards.db"
                     ).fallbackToDestructiveMigration().build()
                 }
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            FolderScreenMenu(dao = db.decksDao, daoFolder = db.folderDao, id, navController)
+                            FolderScreenMenu(dao = db.decksDao, daoFolder = db.folderDao,db.cardsDao , id, navController)
                         }
 
                         composable(route = "${Screen.QuizScreen.route}?id={id}" ,arguments = listOf(
@@ -81,6 +81,18 @@ class MainActivity : ComponentActivity() {
                             val id = entry.arguments?.getInt("id") ?: 0
                             QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao)
                         }
+                        composable(route = "${Screen.TestQuizScreen.route}?id={id}" ,arguments = listOf(
+                            navArgument("id") {
+                                type = NavType.IntType
+                                defaultValue = 0
+                                nullable = false
+                            }
+                        )
+                        ) { entry ->
+                            val id = entry.arguments?.getInt("id") ?: 0
+                            TrainingQuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao)
+                        }
+
                     }
                 }
             }

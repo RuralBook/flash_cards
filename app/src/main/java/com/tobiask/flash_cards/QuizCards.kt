@@ -13,3 +13,4 @@ data class QuizCards(
     var difficulty: Int,
     var difficultyTimes:Int,
 )
+
