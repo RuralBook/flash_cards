@@ -203,8 +203,7 @@ fun MainScreen(
                         },
                         backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
                         onBackgroundEndClick = {
-                            //viewModel.deleteCards(row.id)
-                            //viewModel.delDeck(row)
+                            viewModel.deleteFolder(row)
                         }
                     ) {
                         FolderCard(folder = row, navController = navController)

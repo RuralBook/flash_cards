@@ -52,6 +52,11 @@ class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cards
             folderDao.insertFolder(folder)
         }
     }
+    fun deleteFolder(folder: Folder) {
+        viewModelScope.launch {
+            folderDao.deleteFolder(folder)
+        }
+    }
 
     fun addImportance(deck: Deck){
         viewModelScope.launch {

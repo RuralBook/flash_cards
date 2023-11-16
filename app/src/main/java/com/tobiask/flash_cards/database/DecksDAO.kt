@@ -70,9 +70,15 @@ interface FolderDao {
     @Insert(Folder::class)
     suspend fun insertFolder(folder: Folder)
 
+    @Delete(Folder::class)
+    suspend fun deleteFolder(folder: Folder)
+
     @Update(Folder::class)
     suspend fun updateFolder(folder: Folder)
 
     @Query("SELECT * FROM folder")
     fun getAllFolder(): Flow<List<Folder>>
+
+    @Query("SELECT * FROM folder WHERE parentFolder like :id")
+    fun getAllFolderById(id: Int): Flow<List<Folder>>
 }

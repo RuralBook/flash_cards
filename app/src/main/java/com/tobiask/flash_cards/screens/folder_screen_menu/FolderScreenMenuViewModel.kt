@@ -56,9 +56,21 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
         }
     }
 
+    fun deleteFolder(folder: Folder) {
+        viewModelScope.launch {
+            daoFolder.deleteFolder(folder)
+        }
+    }
+
     fun addDeck(deck: Deck) {
         viewModelScope.launch {
             dao.addDeck(deck)
+        }
+    }
+
+    fun addFolder(folder: Folder) {
+        viewModelScope.launch {
+            daoFolder.insertFolder(folder)
         }
     }
 
