@@ -2,7 +2,9 @@ package com.tobiask.flash_cards.screens.main_screen
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,7 +94,7 @@ fun MainScreen(
 
     rememberScrollState()
     val popupStateAdd by viewModel.showPopUp.collectAsState()
-    val decks = viewModel.dao.getAllDecks().collectAsState(initial = emptyList())
+    val mainDecks =viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
     val folder = viewModel.folderDao.getAllFolder().collectAsState(initial = emptyList())
     if (popupStateAdd) {
         AddDeck(viewModel = viewModel, context)
@@ -154,16 +156,16 @@ fun MainScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(onClick = { decksShown = true }) {
-                        Text(text = "Decks")
+                        Text(text = stringResource(id = R.string.decks))
                     }
                     TextButton(onClick = { decksShown = false }) {
-                        Text(text = "Folder")
+                        Text(text = stringResource(id = R.string.folder))
                     }
                 }
                 Spacer(modifier = Modifier.height(25.dp))
             }
             if (decksShown) {
-                itemsIndexed(decks.value) { _, row ->
+                itemsIndexed(mainDecks.value) { _, row ->
                     RevealSwipe(
                         modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
                         directions = setOf(
@@ -188,6 +190,7 @@ fun MainScreen(
                 }
             } else {
                 itemsIndexed(folder.value) { _, row ->
+                    val decks1 = viewModel.dao.getAllDecksWithParent(row.id).collectAsState(initial = emptyList())
                     RevealSwipe(
                         modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
                         directions = setOf(
@@ -203,7 +206,12 @@ fun MainScreen(
                         },
                         backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
                         onBackgroundEndClick = {
+                            for(deck in decks1.value){
+                                viewModel.deleteCards(deck.id)
+                            }
+                            viewModel.delDeckByFolder(row)
                             viewModel.deleteFolder(row)
+
                         }
                     ) {
                         FolderCard(folder = row, navController = navController)
@@ -261,8 +269,9 @@ fun FolderCard(folder: Folder, navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .requiredHeight(175.dp)
-            .padding(bottom = 10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            .padding(bottom = 10.dp)
+            .background(MaterialTheme.colorScheme.background),
+        border = BorderStroke(2.5.dp, MaterialTheme.colorScheme.onBackground)
     ) {
         Box(Modifier
             .fillMaxSize()
@@ -373,7 +382,9 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
         },
         title = {
             TextButton(onClick = { isDeck = !isDeck }) {
-                Text(text = if (isDeck) stringResource(id = R.string.new_deck) else "new Folder")
+                Text(text = if (isDeck) stringResource(id = R.string.new_deck) else stringResource(
+                    id = R.string.new_folder
+                ), fontSize = 20.sp)
             }
         },
         text = {

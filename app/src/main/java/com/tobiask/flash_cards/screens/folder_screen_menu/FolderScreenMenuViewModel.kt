@@ -34,9 +34,6 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
     private val _showPopUpEditFolder = MutableStateFlow(false)
     val showPopUpEditFolder = _showPopUpEditFolder.asStateFlow()
 
-    fun editCardValue(card: Card): Card{
-        return card
-    }
 
     fun popUpAdd() {
         _showPopUpAdd.value = !_showPopUpAdd.value
@@ -56,11 +53,6 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
         }
     }
 
-    fun deleteFolder(folder: Folder) {
-        viewModelScope.launch {
-            daoFolder.deleteFolder(folder)
-        }
-    }
 
     fun addDeck(deck: Deck) {
         viewModelScope.launch {
@@ -68,20 +60,16 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao, fol
         }
     }
 
-    fun addFolder(folder: Folder) {
-        viewModelScope.launch {
-            daoFolder.insertFolder(folder)
-        }
-    }
 
-    fun delOneDeck(folder:Folder) {
+
+    fun delOneDeck(deck: Deck) {
         viewModelScope.launch {
-            daoFolder.insertFolder(folder)
+            dao.deleteDeck(deck)
         }
     }
-    fun updateDecks(folder:Folder) {
+    fun updateDecks(deck: Deck) {
         viewModelScope.launch {
-            daoFolder.updateFolder(folder)
+            dao.addDeck(deck)
         }
     }
 }

@@ -20,8 +20,12 @@ interface DecksDAO {
     @Query("SELECT * FROM deck WHERE id LIKE :id1")
     fun getDeck(id1: Int): Flow<Deck>
 
-    @Query("SELECT * FROM deck WHERE parentFolder LIKE 0 ORDER BY important desc")
+    @Query("SELECT * FROM deck")
     fun getAllDecks(): Flow<List<Deck>>
+
+    @Query("SELECT id FROM deck WHERE parentFolder LIKE 0 ORDER BY important desc")
+    fun getAllDecksId(): Flow<List<Int>>
+
 
     @Query("SELECT * FROM deck WHERE parentFolder LIKE :parent")
     fun getAllDecksWithParent(parent: Int): Flow<List<Deck>>
@@ -73,7 +77,7 @@ interface FolderDao {
     @Delete(Folder::class)
     suspend fun deleteFolder(folder: Folder)
 
-    @Update(Folder::class)
+    @Upsert(Folder::class)
     suspend fun updateFolder(folder: Folder)
 
     @Query("SELECT * FROM folder")

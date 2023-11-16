@@ -75,6 +75,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -116,7 +117,8 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
     val deck = viewModel.dao.getDeck(id).collectAsState(initial = Deck(0, ""))
     val popUpEdit by viewModel.showPopUpEdit.collectAsState()
 
-    val cards = viewModel.cards.collectAsState(initial = emptyList()) //viewModel.daoCards.getCards(deck.value.id).collectAsState(initial = emptyList())
+    val cards =
+        viewModel.cards.collectAsState(initial = emptyList()) //viewModel.daoCards.getCards(deck.value.id).collectAsState(initial = emptyList())
 
     if (popUpEdit) {
         EditDeck(
@@ -125,7 +127,6 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
             deck.value
         )
     }
-
 
 
     val popUpAdd by viewModel.showPopUpAdd.collectAsState()
@@ -138,11 +139,11 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
         topBar = {
             Column(
                 Modifier
-                    .padding(top = 10.dp, end = 10.dp, start = 10.dp)
-                    .clip(shape = RoundedCornerShape(20.dp))
+                    .padding(10.dp)
+                    .clip(shape = RoundedCornerShape(15.dp))
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.primaryContainer),
-            ){
+            ) {
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -154,13 +155,15 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                         text = deck.value.name,
                         fontSize = 27.5.sp,
                         textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
                 }
                 Row(
                     Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center){
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Box(
                         Modifier
                             .clickable {
@@ -168,8 +171,12 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                                 val routeWithArgs = "${Screen.QuizScreen.route}?id=${ids}"
                                 navController.navigate(routeWithArgs)
                             }
-                    ){
-                        Icon(imageVector = Icons.Default.PlayCircleOutline, contentDescription = null, Modifier.size(35.dp, 35.dp))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircleOutline,
+                            contentDescription = null,
+                            Modifier.size(35.dp, 35.dp)
+                        )
                     }
                 }
             }
@@ -186,40 +193,39 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
             }
         },
         content = {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    end = 20.dp,
-                    start = 20.dp,
-                    top = it.calculateTopPadding(),
-                    bottom = it.calculateBottomPadding()
-                )
-            ){
-                LazyColumn(Modifier.padding(top = 15.dp)
-                ){
-                    itemsIndexed(cards.value) { _, row ->
-                        RevealSwipe(
-                            modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
-                            directions = setOf(
-                                RevealDirection.EndToStart
-                            ),
-                            hiddenContentEnd = {
-                                Icon(
-                                    modifier = Modifier.padding(horizontal = 25.dp),
-                                    imageVector = Icons.Outlined.Delete,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondary
-                                )
-                            },
-                            backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
-                            onBackgroundEndClick = {
-                                viewModel.delOneCard(row)
-                            }
-                        ) {
-                            CardCardDeckScreen(card = row, viewModel, context)
+            LazyColumn(
+                Modifier
+                    .fillMaxSize()
+                    .padding(
+                        end = 20.dp,
+                        start = 20.dp,
+                        top = it.calculateTopPadding() + 15.dp,
+                        bottom = it.calculateBottomPadding()
+                    ),
+                verticalArrangement = Arrangement.Center
+            ) {
+                itemsIndexed(cards.value) { _, row ->
+                    RevealSwipe(
+                        modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
+                        directions = setOf(
+                            RevealDirection.EndToStart
+                        ),
+                        hiddenContentEnd = {
+                            Icon(
+                                modifier = Modifier.padding(horizontal = 25.dp),
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        },
+                        backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
+                        onBackgroundEndClick = {
+                            viewModel.delOneCard(row)
                         }
-
+                    ) {
+                        CardCardDeckScreen(card = row, viewModel, context)
                     }
+
                 }
             }
         }
@@ -234,11 +240,11 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
     val popUpEditCard by viewModel.showPopUpEditCard.collectAsState()
 
     if (popUpEditCard) {
-            EditCard(
-                viewModel = viewModel,
-                context = context,
-                card = card
-            )
+        EditCard(
+            viewModel = viewModel,
+            context = context,
+            card = card
+        )
     }
 
     var front by remember {
@@ -278,7 +284,7 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
                         Text(
                             modifier = Modifier.padding(start = 20.dp, top = 20.dp),
                             text = if (front) card.front else card.back,
-                            fontSize = 25.sp,
+                            fontSize = 30.sp,
                             fontStyle = if (front) FontStyle.Normal else FontStyle.Italic
                         )
                     }
@@ -303,7 +309,14 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                 onClick = {
                     if (textState.value.text.isNotEmpty()) {
                         viewModel.popUpEdit()
-                        viewModel.addDeck(Deck(name = textState.value.text, id = deck.id, parentFolder = deck.parentFolder, important = deck.important))
+                        viewModel.addDeck(
+                            Deck(
+                                name = textState.value.text,
+                                id = deck.id,
+                                parentFolder = deck.parentFolder,
+                                important = deck.important
+                            )
+                        )
                     } else {
                         Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
                             .show()
@@ -330,21 +343,6 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
 fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val textState = remember { mutableStateOf(TextFieldValue()) }
     val textState1 = remember { mutableStateOf(TextFieldValue()) }
-    var imageFrontUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    /*val launcherFront = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageFrontUri = uri
-    }
-
-    var imageBackUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val launcherBack = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageBackUri = uri
-    }*/
 
     AlertDialog(
         onDismissRequest = {
@@ -358,12 +356,13 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                         viewModel.addCard(
                             Card(
                                 front = textState.value.text,
-                                frontImg = if(imageFrontUri != null)imageFrontUri.toString() else "",
+                                frontImg = "",
                                 back = textState1.value.text,
                                 backImg = "",
                                 deckId = deck.id,
                                 folderRoute = 0,
-                                dueTo = LocalDate.now().toString())
+                                dueTo = LocalDate.now().toString()
+                            )
                         )
                     } else {
                         Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
@@ -385,15 +384,6 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                     maxLines = 3,
                     //minLines = 3)
                 )
-                /*Row {
-                    IconButton(onClick = { launcherFront.launch("image/*") }) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageFrontUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageFrontUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/*/
                 Spacer(modifier = Modifier.height(10.dp))
                 TextField(
                     value = textState1.value,
@@ -402,16 +392,6 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                     maxLines = 3,
                     //minLines = 3,
                 )
-                /*Row {
-                    IconButton(onClick = { launcherBack.launch("image/*") }) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageBackUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageFrontUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/*/
-
             }
         }
     )
@@ -433,21 +413,25 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                 onClick = {
                     if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
                         val updateCard = Card(
-                            id =card.id,
+                            id = card.id,
                             deckId = card.deckId,
                             front = textState.value.text,
                             back = textState1.value.text,
                             folderRoute = 0,
-                            difficulty = if(!resetDifficulty) card.difficulty else 0,
-                            difficultyTimes = if(!resetDifficulty) card.difficultyTimes else 0,
-                            dueTo = if(!resetDifficulty) card.dueTo else LocalDate.now().toString()
+                            difficulty = if (!resetDifficulty) card.difficulty else 0,
+                            difficultyTimes = if (!resetDifficulty) card.difficultyTimes else 0,
+                            dueTo = if (!resetDifficulty) card.dueTo else LocalDate.now().toString()
                         )
                         viewModel.updateCard(
                             updateCard
                         )
                         viewModel.popUpEditCard()
                     } else {
-                        Toast.makeText(context, R.string.please_enter_a_valid_text, Toast.LENGTH_SHORT)
+                        Toast.makeText(
+                            context,
+                            R.string.please_enter_a_valid_text,
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
                     }
                 }) {
@@ -466,15 +450,6 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                     maxLines = 4,
                     //minLines = 3
                 )
-                /*Row {
-                    IconButton(onClick = { launcherFront.launch("image/*") }) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageFrontUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageFrontUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/*/
                 Spacer(modifier = Modifier.height(10.dp))
                 TextField(
                     value = textState1.value,
@@ -483,18 +458,9 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                     maxLines = 4,
                     //minLines = 3,
                 )
-                /*Row {
-                    IconButton(onClick = { launcherBack.launch("image/*") }) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageBackUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageBackUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/*/
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(text = stringResource(id = R.string.reset_difficulty))
-                Switch(checked = resetDifficulty, onCheckedChange = {resetDifficulty = it})
+                Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
             }
         }
     )

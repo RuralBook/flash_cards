@@ -16,6 +16,8 @@ import com.tobiask.flash_cards.database.FolderDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
@@ -57,19 +59,20 @@ class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cards
             folderDao.deleteFolder(folder)
         }
     }
-
-    fun addImportance(deck: Deck){
+    fun delDeckByFolder(folder: Folder) {
         viewModelScope.launch {
-            dao.addImportance(deck)
+            dao.delAllDecksWithParent(folder.id)
         }
     }
 
     fun delDeck(deck: Deck) {
         viewModelScope.launch {
-            //dao.delAllDecksWithParent(deck.parentDecks+"/"+deck.name)
+            cardsDao.deleteCardsByDeckId(deck.id)
             dao.deleteDeck(deck)
         }
     }
+
+
 
     fun deleteCards(id: Int){
         viewModelScope.launch {

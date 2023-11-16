@@ -13,8 +13,8 @@ android {
         applicationId = "com.tobiask.flash_cards"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.1.5 Patch-1"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

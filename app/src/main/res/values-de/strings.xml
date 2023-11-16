@@ -21,4 +21,9 @@
     <string name="new_deck">Neues Deck</string>
     <string name="add">hinzufügen</string>
     <string name="empty_deck"> Leeres Deck, \n nichts mehr zu lernen übrig!</string>
+    <string name="new_folder">Neuer Ordner</string>
+    <string name="name_of_the_folder">Name des Ordners</string>
+    <string name="edit_folder">Ordner bearbeiten</string>
+    <string name="decks">Decks</string>
+    <string name="folder">Ordner</string>
 </resources>

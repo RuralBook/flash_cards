@@ -11,7 +11,7 @@
     <string name="difficulty_easy">easy</string>
     <string name="update">Update!</string>
     <string name="please_enter_a_name">Please enter a name</string>
-    <string name="edit_deck">edit deck</string>
+    <string name="edit_deck">Edit deck</string>
     <string name="name_of_the_deck">name of the deck</string>
     <string name="new_card">New card</string>
     <string name="fronside">front</string>
@@ -22,4 +22,9 @@
     <string name="new_deck">New deck</string>
     <string name="add">Add</string>
     <string name="empty_deck"> empty deck, \n nothing to learn!</string>
+    <string name="new_folder">New Folder</string>
+    <string name="name_of_the_folder">Name of the folder</string>
+    <string name="edit_folder">Edit folder</string>
+    <string name="decks">Decks</string>
+    <string name="folder">Folder</string>
 </resources>
