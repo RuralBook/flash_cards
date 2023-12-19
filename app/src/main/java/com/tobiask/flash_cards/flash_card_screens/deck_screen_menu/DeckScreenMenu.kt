@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.ModelTraining
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Delete
@@ -90,10 +91,8 @@ import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
+import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenuViewModel
 import com.tobiask.flash_cards.navigation.Screen
-import com.tobiask.flash_cards.screens.main_screen.DeckCard
-import com.tobiask.flash_cards.screens.quiz_screen.CardFace
-import com.tobiask.flash_cards.screens.quiz_screen.FlipCard
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
 import java.time.LocalDate
@@ -170,6 +169,16 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                             }
                     ){
                         Icon(imageVector = Icons.Default.PlayCircleOutline, contentDescription = null, Modifier.size(35.dp, 35.dp))
+                    }
+                    Box(
+                        Modifier
+                            .clickable {
+                                val ids = deck.value.id
+                                val routeWithArgs = "${Screen.TestQuizScreen.route}?id=${ids}"
+                                navController.navigate(routeWithArgs)
+                            }
+                    ){
+                        Icon(imageVector = Icons.Default.ModelTraining, contentDescription = null, Modifier.size(35.dp, 35.dp))
                     }
                 }
             }

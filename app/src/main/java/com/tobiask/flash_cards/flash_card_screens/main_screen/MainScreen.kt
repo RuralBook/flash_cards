@@ -250,7 +250,7 @@ fun MainScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeckCard(deck: Deck, navController: NavController, viewModel: MainScreenViewModel) {
-    val cardsToLearn = viewModel.getToLearnCards(deck.id)
+    //val cardsToLearn = viewModel.getToLearnCards(deck.id)
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -287,7 +287,7 @@ fun DeckCard(deck: Deck, navController: NavController, viewModel: MainScreenView
                     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
                         Text(
                             modifier = Modifier.padding(bottom = 20.dp),
-                            text = cardsToLearn.toString(),
+                            text = "",
                             fontSize = 20.sp,
                             textDecoration = TextDecoration.Underline
                         )

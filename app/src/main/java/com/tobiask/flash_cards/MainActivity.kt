@@ -16,11 +16,11 @@ import androidx.navigation.navArgument
 import androidx.room.Room
 import com.tobiask.flash_cards.database.FlashCardsDatabase
 import com.tobiask.flash_cards.navigation.Screen
-import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenu
 import com.tobiask.flash_cards.flash_card_screens.folder_screen_menu.FolderScreenMenu
 import com.tobiask.flash_cards.flash_card_screens.main_screen.MainScreen
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreen
 import com.tobiask.flash_cards.flash_card_screens.training_quiz_screen.TrainingQuizScreen
+import com.tobiask.flash_cards.screens.deck_screen_menu.DeckScreenMenu
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
 
 class MainActivity : ComponentActivity() {
