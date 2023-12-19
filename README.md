@@ -1,2 +1,6 @@
 # flash_cards
-basic flash card app
+basic material-U flash card app
+
+### known issues:
+- [ ] wrong text if u want to add a Folder
+- [ ] 
