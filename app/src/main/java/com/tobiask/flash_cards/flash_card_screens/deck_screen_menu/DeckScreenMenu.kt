@@ -163,8 +163,9 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                     )
                 }
                 Box(Modifier.clickable {
-                        Toast.makeText(context, "Coming Soon!", Toast.LENGTH_SHORT).show()
-
+                    val ids = deck.value.id
+                    val routeWithArgs = "${Screen.ExportImportScreen.route}?id=${ids}"
+                    navController.navigate(routeWithArgs)
                     }) {
                     Icon(
                         imageVector = Icons.Default.Search,

@@ -55,21 +55,6 @@ class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cards
         }
     }
 
-    fun getToLearnCards(id: Int): Int{
-        var cards = emptyList<Card>()
-        viewModelScope.launch{
-            cards = cardsDao.getCardsToLearn(id)
-        }
-        var ret = 0
-        val today = LocalDate.now()
-        for (card in cards){
-            val dueTo = LocalDate.parse(card.dueTo)
-            if (dueTo.isEqual(today) || dueTo.isBefore(today)){
-                ret++
-            }
-        }
-        return  ret
-    }
 
     fun deleteCards(id: Int){
         viewModelScope.launch {

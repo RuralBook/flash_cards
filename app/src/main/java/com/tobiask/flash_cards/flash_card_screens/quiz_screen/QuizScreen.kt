@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,8 @@ import com.tobiask.flash_cards.R
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenuViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
@@ -120,6 +123,9 @@ fun QuizCard(
     if (cards.size == 0){
         cardsNotEmpty = false
     }
+
+    val co = rememberCoroutineScope()
+
     if (cardsNotEmpty){
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -235,9 +241,12 @@ fun QuizCard(
                             Button(onClick = {
                                 viewModel.difficult(card, cardsDao, id)
                                 if (cards.size - 1 > i) {
-                                    i++
-                                    card = cards[i]
-                                    cardFace = CardFace.Front
+                                    cardFace = CardFace.Front;
+                                    co.launch {
+                                        delay(500);
+                                        i++
+                                        card = cards[i]
+                                    }
                                 }
                             }) { Text(text = stringResource(id = R.string.difficulty_difficult)) }
 
@@ -247,9 +256,13 @@ fun QuizCard(
                                 cards.add(card)
                                 Log.d("test", cards.size.toString() + " | " + i.toString())
                                 if (cards.size - 1 > i) {
-                                    i++
-                                    card = cards[i]
                                     cardFace = CardFace.Front
+                                    co.launch {
+                                        delay(500);
+                                        i++
+                                        card = cards[i]
+                                    }
+
                                 } else {cardsNotEmpty = false}
                                 Log.d("test", card.toString())
                                 //card.let { onClick(0, it) }
@@ -260,9 +273,13 @@ fun QuizCard(
                             Button(onClick = {
                                 viewModel.well(card, cardsDao, id)
                                 if (cards.size - 1 > i) {
-                                    i++
-                                    card = cards[i]
                                     cardFace = CardFace.Front
+                                    co.launch {
+                                        delay(500);
+                                        i++
+                                        card = cards[i]
+                                    }
+
                                 }else {cardsNotEmpty = false}
                             }) { Text(text = stringResource(id = R.string.difficulty_well)) }
 
@@ -270,8 +287,11 @@ fun QuizCard(
                                 viewModel.easy(card, cardsDao, id)
                                 if (cards.size - 1 > i) {
                                     cardFace = CardFace.Front
-                                    i++
-                                    card = cards[i]
+                                    co.launch {
+                                        delay(500);
+                                        i++
+                                        card = cards[i]
+                                    }
                                 }else {cardsNotEmpty = false}
                             }) { Text(text = stringResource(id = R.string.difficulty_easy)) }
                         }

@@ -35,16 +35,19 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +64,13 @@ import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenuViewModel
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.CardFace
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.FlipCard
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
+import java.time.LocalTime
+import kotlin.concurrent.timer
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
@@ -110,6 +120,7 @@ fun QuizCard(
     //viewModel: DeckScreenMenuViewModel,
     //cardsDao: CardsDao,
 ) {
+    val context = LocalContext.current
     var cardFace by remember {
         mutableStateOf(CardFace.Front)
     }
@@ -126,6 +137,9 @@ fun QuizCard(
     if (cards.size == 0){
         cardsNotEmpty = false
     }
+
+    var co = rememberCoroutineScope()
+
     if (cardsNotEmpty){
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -242,8 +256,14 @@ fun QuizCard(
                             Button(onClick = {
                                 if (cards.size - 1 > i) {
                                     cardFace = CardFace.Front
-                                    i++
-                                    card = cards[i]
+                                    co.launch {
+                                        delay(500);
+                                        i++
+                                        card = cards[i]
+                                    }
+
+
+
                                 }else {cardsNotEmpty = false}
                             }) { Text(text = stringResource(id = R.string.next)) }
                         }

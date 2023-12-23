@@ -20,6 +20,8 @@ interface DecksDAO {
     @Query("SELECT * FROM deck WHERE id LIKE :id1")
     fun getDeck(id1: Int): Flow<Deck>
 
+    @Query("SELECT name FROM deck WHERE id Like :id")
+    suspend fun getDeckName(id: Int): List<String>
     @Query("SELECT * FROM deck")
     fun getAllDecks(): Flow<List<Deck>>
 
@@ -55,7 +57,7 @@ interface CardsDao {
     fun getCards(id: Int): Flow<List<Card>>
 
     @Query("SELECT * FROM card WHERE deckId LIKE :id")
-    fun getCardsList(id: Int): List<Card>
+    suspend fun getCardsList(id: Int): List<Card>
 
     @Query("SELECT backImg AND frontImg FROM card WHERE id LIKE :id1")
     fun getUri(id1: Int): Flow<String>
