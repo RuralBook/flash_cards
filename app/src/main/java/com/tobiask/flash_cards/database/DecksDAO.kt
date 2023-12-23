@@ -55,7 +55,7 @@ interface CardsDao {
     fun getCards(id: Int): Flow<List<Card>>
 
     @Query("SELECT * FROM card WHERE deckId LIKE :id")
-    fun getCardsToLearn(id: Int): List<Card>
+    fun getCardsList(id: Int): List<Card>
 
     @Query("SELECT backImg AND frontImg FROM card WHERE id LIKE :id1")
     fun getUri(id1: Int): Flow<String>

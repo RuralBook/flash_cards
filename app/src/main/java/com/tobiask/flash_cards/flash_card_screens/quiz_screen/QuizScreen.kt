@@ -136,7 +136,7 @@ fun QuizCard(
                     ), fontStyle = FontStyle.Italic
                 )
 
-                // Whitch side is front and which is the answer:
+                // Which side is front and which is the answer:
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = stringResource(id = R.string.front_first_card))
                     Spacer(modifier = Modifier.width(10.dp))
@@ -269,9 +269,9 @@ fun QuizCard(
                             Button(onClick = {
                                 viewModel.easy(card, cardsDao, id)
                                 if (cards.size - 1 > i) {
+                                    cardFace = CardFace.Front
                                     i++
                                     card = cards[i]
-                                    cardFace = CardFace.Front
                                 }else {cardsNotEmpty = false}
                             }) { Text(text = stringResource(id = R.string.difficulty_easy)) }
                         }

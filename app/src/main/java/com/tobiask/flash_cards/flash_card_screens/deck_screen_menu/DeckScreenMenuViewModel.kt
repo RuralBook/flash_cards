@@ -10,6 +10,9 @@ import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -20,6 +23,9 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, deckId:
     private val _showPopUpAdd = MutableStateFlow(false)
     val showPopUpAdd = _showPopUpAdd.asStateFlow()
 
+    private val _showSearchBar = MutableStateFlow(false)
+    val showSearchBar = _showSearchBar.asStateFlow()
+
     private val _showPopUpEdit = MutableStateFlow(false)
     val showPopUpEdit = _showPopUpEdit.asStateFlow()
 
@@ -28,6 +34,10 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, deckId:
 
     fun editCardValue(card: Card): Card{
         return card
+    }
+
+    fun searchBar(){
+        _showSearchBar.value = !_showSearchBar.value
     }
 
     fun popUpAdd() {

@@ -241,9 +241,9 @@ fun QuizCard(
                         Column {
                             Button(onClick = {
                                 if (cards.size - 1 > i) {
+                                    cardFace = CardFace.Front
                                     i++
                                     card = cards[i]
-                                    cardFace = CardFace.Front
                                 }else {cardsNotEmpty = false}
                             }) { Text(text = stringResource(id = R.string.next)) }
                         }
