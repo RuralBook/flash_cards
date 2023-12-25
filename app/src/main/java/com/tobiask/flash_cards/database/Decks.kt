@@ -2,7 +2,6 @@ package com.tobiask.flash_cards.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
 
 @Entity
 data class Deck(
@@ -64,8 +63,14 @@ data class Stats(
 
     val learnedCounter: Int,
 
+    val learnedCardsCounter: Int,
+
     val streak: Int,
 
     val lastLearned: String,
+
+    val firstUsage: String,
+
+    val achievements: String
 )
 

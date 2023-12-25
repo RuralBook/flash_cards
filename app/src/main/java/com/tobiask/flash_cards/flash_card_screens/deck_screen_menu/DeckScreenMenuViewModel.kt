@@ -104,7 +104,7 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
             daoCards.updateCard(card)
         }
     }
-    fun updateStats(){
+    fun updateStats(cards: Int){
         var stats = emptyList<Stats>()
         viewModelScope.launch{
             runBlocking {
@@ -122,7 +122,10 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
                     id = stats[0].id,
                     learnedCounter = learnedCounter ,
                     streak = streak,
-                    lastLearned = LocalDate.now().toString()
+                    lastLearned = LocalDate.now().toString(),
+                    learnedCardsCounter = stats[0].learnedCardsCounter + cards,
+                    firstUsage = stats[0].firstUsage,
+                    achievements = ""
                 )
             )
         }

@@ -6,8 +6,11 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Deck::class, Card::class, Config::class, Folder::class, Stats::class],
-    version = 2,
-    exportSchema = false,
+    version = 3,
+    exportSchema = true,
+    autoMigrations = [
+
+    ]
 )
 abstract class FlashCardsDatabase: RoomDatabase() {
 

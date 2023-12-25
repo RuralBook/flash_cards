@@ -40,7 +40,10 @@ class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cards
                 Stats(
                     learnedCounter = 0,
                     streak = 0,
-                    lastLearned = LocalDate.now().minusDays(2).toString()
+                    lastLearned = LocalDate.now().minusDays(2).toString(),
+                    learnedCardsCounter = 0,
+                    achievements = "",
+                    firstUsage = LocalDate.now().toString()
                 )
             )
         }

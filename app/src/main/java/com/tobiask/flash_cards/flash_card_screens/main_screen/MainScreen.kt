@@ -74,6 +74,7 @@ import com.tobiask.flash_cards.database.StatsDao
 import com.tobiask.flash_cards.navigation.Screen
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -100,14 +101,20 @@ fun MainScreen(
     val popupStateAdd by viewModel.showPopUp.collectAsState()
     val mainDecks = viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
     val folder = viewModel.folderDao.getAllFolderById(0).collectAsState(initial = emptyList())
-    //val cards = viewModel.cards.collectAsState(initial = emptyList())
-    val stats = viewModel.stats.collectAsState(initial = listOf(Stats(
-        learnedCounter = 0,
-        streak = 0,
-        lastLearned = ""
-    )))
+    val stats = viewModel.stats.collectAsState(
+        initial = listOf(
+            Stats(
+                learnedCounter = 0,
+                streak = 0,
+                lastLearned = "",
+                learnedCardsCounter = 0,
+                achievements = "",
+                firstUsage = ""
+            )
+        )
+    )
 
-    if (stats.value.isEmpty()){
+    if (stats.value.isEmpty()) {
         viewModel.insertStatsFirstTime()
     }
 
@@ -123,63 +130,56 @@ fun MainScreen(
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                modifier = Modifier
-                    .fillMaxWidth(),//.height(80.dp),
-                title = {
-                    Column() {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),//.fillMaxHeight(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clickable {
-                                        navController.navigate(Screen.statsScreen.route)
-                                    },
-                                Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.BarChart,
-                                    contentDescription = "statistics"
-                                )
-                            }
-
-
-                            Text(
-                                text = stringResource(id = R.string.welcome),
-                                fontSize = 39.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                softWrap = true
-                            )
-                            Box(
-                                Modifier
-                                    .size(50.dp)
-                                    .clickable {
-                                        val routeWithArgs = Screen.SettingsScreen.route
-                                        navController.navigate(routeWithArgs)
-                                    },
-                                Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "settings"
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),//.fillMaxHeight(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-
-                        }
+            Column(Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),//.fillMaxHeight(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clickable {
+                                navController.navigate(Screen.statsScreen.route)
+                            },
+                        Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart,
+                            contentDescription = "statistics"
+                        )
                     }
-                },
 
-                )
+
+                    Text(
+                        text = stringResource(id = R.string.welcome),
+                        fontSize = 39.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        softWrap = true
+                    )
+                    Box(
+                        Modifier
+                            .size(50.dp)
+                            .clickable {
+                                val routeWithArgs = Screen.SettingsScreen.route
+                                navController.navigate(routeWithArgs)
+                            },
+                        Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "settings"
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),//.fillMaxHeight(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+
+                }
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { viewModel.popUp() }) {
@@ -281,7 +281,6 @@ fun DeckCard(deck: Deck, navController: NavController, viewModel: MainScreenView
     val cardsToLearn =
         viewModel.cardsDao.getCardsDueTo(deck.id).collectAsState(initial = emptyList())
     val counter = viewModel.getCardsToLearn(cardsToLearn.value)
-
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()

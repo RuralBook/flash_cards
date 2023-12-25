@@ -120,7 +120,7 @@ fun QuizScreen(
             }
         }
     } else {
-        AnalyseScreen(known, ok_known, unknown, navController, viewModel, false)
+        AnalyseScreen(known, ok_known, unknown, navController, viewModel, false, cards.size)
     }
 }
 
@@ -338,7 +338,8 @@ fun QuizCard(
             unknown.value,
             navController = navController,
             viewModel,
-            true
+            true,
+            cards.size
         )
     }
 }
@@ -351,11 +352,12 @@ fun AnalyseScreen(
     unknown: Int,
     navController: NavController,
     viewModel: DeckScreenMenuViewModel,
-    update: Boolean
+    update: Boolean,
+    cards: Int
 ) {
 
     if (update) {
-        viewModel.updateStats()
+        viewModel.updateStats(cards)
     }
 
     Scaffold(

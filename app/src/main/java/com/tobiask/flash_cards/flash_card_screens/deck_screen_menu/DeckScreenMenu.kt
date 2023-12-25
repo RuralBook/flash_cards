@@ -203,7 +203,12 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, statsDao: StatsDao , id: In
             LazyColumn(
                 Modifier.padding(top = 15.dp)
             ) {
-                itemsIndexed(cards.value) { _, row ->
+                itemsIndexed(
+                    cards.value,
+                    key = {_, card ->
+                    card.id
+                }
+                ) { _, row ->
                     RevealSwipe(modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
                         directions = setOf(
                             RevealDirection.EndToStart
