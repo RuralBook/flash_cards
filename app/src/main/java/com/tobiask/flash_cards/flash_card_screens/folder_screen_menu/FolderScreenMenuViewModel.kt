@@ -16,7 +16,12 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao,val daoCards: CardsDao ,folderId: Int) : ViewModel() {
+class FolderScreenMenuViewModel(
+    val dao: DecksDAO,
+    val daoFolder: FolderDao,
+    val daoCards: CardsDao,
+    folderId: Int
+) : ViewModel() {
 
     val decks = dao.getAllDecksWithParent(folderId)
 
@@ -55,15 +60,27 @@ class FolderScreenMenuViewModel(val dao: DecksDAO, val daoFolder: FolderDao,val 
         }
     }
 
-
     fun delOneDeck(deck: Deck) {
         viewModelScope.launch {
             dao.deleteDeck(deck)
         }
     }
+
     fun updateDecks(deck: Deck) {
         viewModelScope.launch {
             dao.addDeck(deck)
         }
+    }
+
+    fun getCardsToLearn(cards: List<String>): Int{
+        var toLearn = 0
+        for(card in cards){
+            val dueTo = LocalDate.parse(card)
+            val today = LocalDate.now()
+            if (dueTo.isBefore(today) || dueTo.isEqual(today)){
+                toLearn++
+            }
+        }
+        return toLearn
     }
 }

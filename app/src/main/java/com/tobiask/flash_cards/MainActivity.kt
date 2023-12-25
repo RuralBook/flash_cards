@@ -22,6 +22,7 @@ import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreen
 import com.tobiask.flash_cards.flash_card_screens.training_quiz_screen.TrainingQuizScreen
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenu
 import com.tobiask.flash_cards.flash_card_screens.exportImportScreen.ExportImportScreen
+import com.tobiask.flash_cards.flash_card_screens.settings_screen.SettingsScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
 
 class MainActivity : ComponentActivity() {
@@ -68,7 +69,13 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            FolderScreenMenu(dao = db.decksDao, daoFolder = db.folderDao,db.cardsDao , id, navController)
+                            FolderScreenMenu(
+                                dao = db.decksDao,
+                                daoFolder = db.folderDao,
+                                cardsDao = db.cardsDao ,
+                                id = id,
+                                navController = navController
+                            )
                         }
 
                         composable(route = "${Screen.QuizScreen.route}?id={id}" ,arguments = listOf(
@@ -80,7 +87,7 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao)
+                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao, navController)
                         }
                         composable(route = "${Screen.TestQuizScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
@@ -104,6 +111,10 @@ class MainActivity : ComponentActivity() {
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
                             ExportImportScreen(id = id, dao = db.cardsDao, decksDAO = db.decksDao)
+                        }
+                        composable(route = Screen.SettingsScreen.route)
+                        {
+                            SettingsScreen(db.cardsDao, db.decksDao, db.folderDao)
                         }
 
                     }

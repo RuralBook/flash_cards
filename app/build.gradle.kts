@@ -13,8 +13,8 @@ android {
         applicationId = "com.tobiask.flash_cards"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2.0-patch01"
+        versionCode = 4
+        versionName = "1.2.1-prev01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -92,7 +92,4 @@ dependencies {
 
     //Icons
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
-
-    //web images
-    implementation("io.coil-kt:coil-compose:2.5.0")
 }

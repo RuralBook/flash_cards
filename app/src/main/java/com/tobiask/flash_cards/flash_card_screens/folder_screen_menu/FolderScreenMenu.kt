@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -69,10 +70,7 @@ import de.charlex.compose.RevealSwipe
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun FolderScreenMenu(dao: DecksDAO, daoFolder: FolderDao,cardsDao: CardsDao , id: Int, navController: NavController) {
-
     val context = LocalContext.current
-
-
     val viewModel =
         viewModel<FolderScreenMenuViewModel>(factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -85,7 +83,7 @@ fun FolderScreenMenu(dao: DecksDAO, daoFolder: FolderDao,cardsDao: CardsDao , id
     val popUpEdit by viewModel.showPopUpEditFolder.collectAsState()
 
     val decks =
-        viewModel.decks.collectAsState(initial = emptyList()) //viewModel.daoCards.getCards(deck.value.id).collectAsState(initial = emptyList())
+        viewModel.decks.collectAsState(initial = emptyList())
 
     if (popUpEdit) {
         EditFolder(
@@ -181,6 +179,8 @@ fun FolderScreenMenu(dao: DecksDAO, daoFolder: FolderDao,cardsDao: CardsDao , id
 fun DeckCardFolderScreen(
     deck: Deck, viewModel: FolderScreenMenuViewModel, context: Context, navController: NavController
 ) {
+    val cardsToLearn = viewModel.daoCards.getCardsDueTo(deck.id).collectAsState(initial = emptyList())
+    val counter = viewModel.getCardsToLearn(cardsToLearn.value)
 
     ElevatedCard(
         modifier = Modifier
@@ -203,7 +203,7 @@ fun DeckCardFolderScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row {
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Text(
                             modifier = Modifier.padding(start = 20.dp, top = 20.dp),
                             text = deck.name,
@@ -212,16 +212,17 @@ fun DeckCardFolderScreen(
                         )
                     }
                 }
-                /*Row {
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+                Row {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Text(
                             modifier = Modifier.padding(bottom = 20.dp),
-                            text = cardsToLearn.toString(),
+                            text = counter.toString(),
+                            color = Color.Red,
                             fontSize = 20.sp,
                             textDecoration = TextDecoration.Underline
                         )
                     }
-                }*/
+                }
             }
         }
     }

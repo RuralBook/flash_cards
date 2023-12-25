@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,8 +48,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -92,7 +95,8 @@ fun MainScreen(
     rememberScrollState()
     val popupStateAdd by viewModel.showPopUp.collectAsState()
     val mainDecks = viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
-    val folder = viewModel.folderDao.getAllFolder().collectAsState(initial = emptyList())
+    val folder = viewModel.folderDao.getAllFolderById(0).collectAsState(initial = emptyList())
+    val cards = viewModel.cards.collectAsState(initial = emptyList())
     if (popupStateAdd) {
         AddDeck(viewModel = viewModel, context)
     }
@@ -117,7 +121,7 @@ fun MainScreen(
                         ) {
                             Box(modifier = Modifier.size(50.dp)) {
                                 Text(
-                                    text = "",
+                                    text = viewModel.getCardsToLearn(cards.value).toString(),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Normal,
                                     textAlign = TextAlign.Center,
@@ -134,13 +138,18 @@ fun MainScreen(
                                 softWrap = true
                             )
 
-                            Box(Modifier.size(50.dp)) {
+                            Box(
+                                Modifier
+                                    .size(50.dp)
+                                    .clickable {
+                                        val routeWithArgs = Screen.SettingsScreen.route
+                                        navController.navigate(routeWithArgs)
+                                    }, Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = "settings"
                                 )
                             }
-
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),//.fillMaxHeight(),
@@ -250,7 +259,10 @@ fun MainScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeckCard(deck: Deck, navController: NavController, viewModel: MainScreenViewModel) {
-    //val cardsToLearn = viewModel.getToLearnCards(deck.id)
+    val cardsToLearn =
+        viewModel.cardsDao.getCardsDueTo(deck.id).collectAsState(initial = emptyList())
+    val counter = viewModel.getCardsToLearn(cardsToLearn.value)
+
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -258,37 +270,36 @@ fun DeckCard(deck: Deck, navController: NavController, viewModel: MainScreenView
             .padding(bottom = 10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
-        Box(Modifier
-            .fillMaxSize()
-            .combinedClickable(
-                onClick = {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .combinedClickable(onClick = {
                     val routeWithArgs = "${Screen.DeckScreen.route}?id=${deck.id}"
                     navController.navigate(routeWithArgs)
-                }
-            )
+                })
         ) {
             Column(
-                Modifier
-                    .fillMaxSize(),
+                Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row {
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Text(
-                            modifier = Modifier.padding(top = 20.dp),
+                            modifier = Modifier.padding(start = 20.dp, top = 20.dp),
                             text = deck.name,
                             fontSize = 25.sp,
-                            textDecoration = TextDecoration.Underline
+                            fontStyle = FontStyle.Normal
                         )
                     }
                 }
                 Row {
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Text(
                             modifier = Modifier.padding(bottom = 20.dp),
-                            text = "",
+                            text = counter.toString(),
                             fontSize = 20.sp,
+                            color = Color.Red,
                             textDecoration = TextDecoration.Underline
                         )
                     }
@@ -325,7 +336,10 @@ fun FolderCard(folder: Folder, navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row {
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Text(
                             modifier = Modifier.padding(top = 20.dp),
                             text = folder.name,
@@ -360,10 +374,19 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                             viewModel.addDeck(Deck(name = name.value.text))
                         } else {
                             viewModel.popUp()
-                            viewModel.addFolder(Folder(name = name.value.text, parentFolder = 0))
+                            viewModel.addFolder(
+                                Folder(
+                                    name = name.value.text,
+                                    parentFolder = 0
+                                )
+                            )
                         }
                     } else {
-                        Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT)
+                        Toast.makeText(
+                            context,
+                            R.string.please_enter_a_name,
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
                     }
                 }) {
@@ -386,7 +409,9 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                 label = {
                     Text(
                         text = if (isDeck)
-                            stringResource(id = R.string.name_of_the_deck) else stringResource(id = R.string.name_of_the_folder)
+                            stringResource(id = R.string.name_of_the_deck) else stringResource(
+                            id = R.string.name_of_the_folder
+                        )
                     )
                 }
             )

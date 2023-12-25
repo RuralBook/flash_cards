@@ -1,26 +1,31 @@
 package com.tobiask.flash_cards.flash_card_screens.exportImportScreen
 
 import android.net.Uri
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.IosShare
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.DecksDAO
+import com.tobiask.flash_cards.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,9 +38,6 @@ fun ExportImportScreen(id: Int, dao: CardsDao, decksDAO: DecksDAO) {
                 return ExportImportScreenViewModel(id, dao, decksDAO, context) as T
             }
         })
-    var json by remember {
-        mutableStateOf<Uri?>(null)
-    }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -44,15 +46,14 @@ fun ExportImportScreen(id: Int, dao: CardsDao, decksDAO: DecksDAO) {
 
     Scaffold {
         it
-        Column {
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = { viewModel.export() }) {
-                Text(text = "Export")
+                Icon(imageVector = Icons.Default.IosShare, contentDescription = stringResource(id = R.string.export))
+                Text(text = stringResource(id = R.string.export), fontSize = 25.sp)
             }
-            Button(
-                onClick = {
-                    launcher.launch("*/*")
-                }) {
-                Text(text = "Import")
+            Button(onClick = { launcher.launch("*/*") }) {
+                Icon(imageVector = Icons.Default.SaveAlt, contentDescription = stringResource(id = R.string.import_string))
+                Text(text = stringResource(id = R.string.import_string),  fontSize = 25.sp)
             }
         }
     }

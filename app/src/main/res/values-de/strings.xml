@@ -27,4 +27,6 @@
     <string name="decks">Decks</string>
     <string name="folder">Ordner</string>
     <string name="next">nächste</string>
+    <string name="export">exportieren</string>
+    <string name="import_string">importieren</string>
 </resources>

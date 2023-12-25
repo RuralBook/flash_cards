@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.ModelTraining
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Search
@@ -97,7 +98,6 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
         })
     val deck = viewModel.dao.getDeck(id).collectAsState(initial = Deck(0, ""))
     val popUpEdit by viewModel.showPopUpEdit.collectAsState()
-    val searchbarVisibility by viewModel.showSearchBar.collectAsState()
 
     val cards = viewModel.cards.collectAsState(initial = emptyList())
 
@@ -107,10 +107,7 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
             viewModel = viewModel, context = context, deck.value
         )
     }
-
-
     val popUpAdd by viewModel.showPopUpAdd.collectAsState()
-
     if (popUpAdd) {
         AddCard(viewModel = viewModel, context = context, deck = deck.value)
     }
@@ -141,10 +138,15 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
                 Box(Modifier.clickable {
+                    val cards = viewModel.converter(cards.value)
+                    if (cards.isNotEmpty()) {
                         val ids = deck.value.id
                         val routeWithArgs = "${Screen.QuizScreen.route}?id=${ids}"
                         navController.navigate(routeWithArgs)
-                    }) {
+                    } else {
+                        Toast.makeText(context, "Nothing to learn!", Toast.LENGTH_SHORT).show()
+                    }
+                }) {
                     Icon(
                         imageVector = Icons.Default.PlayCircleOutline,
                         contentDescription = null,
@@ -152,10 +154,10 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                     )
                 }
                 Box(Modifier.clickable {
-                        val ids = deck.value.id
-                        val routeWithArgs = "${Screen.TestQuizScreen.route}?id=${ids}"
-                        navController.navigate(routeWithArgs)
-                    }) {
+                    val ids = deck.value.id
+                    val routeWithArgs = "${Screen.TestQuizScreen.route}?id=${ids}"
+                    navController.navigate(routeWithArgs)
+                }) {
                     Icon(
                         imageVector = Icons.Default.ModelTraining,
                         contentDescription = null,
@@ -166,9 +168,9 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                     val ids = deck.value.id
                     val routeWithArgs = "${Screen.ExportImportScreen.route}?id=${ids}"
                     navController.navigate(routeWithArgs)
-                    }) {
+                }) {
                     Icon(
-                        imageVector = Icons.Default.Search,
+                        imageVector = Icons.Default.ImportExport,
                         contentDescription = null,
                         Modifier.size(35.dp, 35.dp)
                     )
@@ -218,12 +220,10 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
                         }) {
                         CardCardDeckScreen(card = row, viewModel, context)
                     }
-
                 }
             }
         }
     })
-
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -234,7 +234,7 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
 
     if (popUpEditCard) {
         EditCard(
-            viewModel = viewModel, context = context, card = card
+            viewModel = viewModel, context = context
         )
     }
 
@@ -260,7 +260,8 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
                 }, onLongClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     front = !front
-                })) {
+                })
+        ) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Top,
@@ -281,7 +282,7 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
     }
 }
 
-// POP UPs
+// POP-UPs
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -321,26 +322,6 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
 fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val textState = remember { mutableStateOf(TextFieldValue()) }
     val textState1 = remember { mutableStateOf(TextFieldValue()) }
-    var imageFrontUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val launcherFront = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageFrontUri = uri
-    }
-
-    var imageBackUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val launcherBack = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageBackUri = uri
-    }
-
-
-
     AlertDialog(onDismissRequest = {
         viewModel.popUpAdd()
     }, confirmButton = {
@@ -373,61 +354,25 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                 onValueChange = { textState.value = it },
                 label = { Text(text = stringResource(id = R.string.fronside)) },
                 maxLines = 3,
-                //minLines = 3)
-            )/*Row {
-                    IconButton(onClick = { launcherFront.launch("image/*") }) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageFrontUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageFrontUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/*/
+            )
             Spacer(modifier = Modifier.height(10.dp))
             TextField(
                 value = textState1.value,
                 onValueChange = { textState1.value = it },
                 label = { Text(text = stringResource(id = R.string.backside)) },
                 maxLines = 3,
-                //minLines = 3,
-            )/*Row {
-                    IconButton(onClick = { launcherBack.launch("image/*") }) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageBackUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageFrontUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/*/
-
+            )
         }
     })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
+fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
+    val card = viewModel.editCard.collectAsState().value
     val textState = remember { mutableStateOf(TextFieldValue(card.front)) }
     val textState1 = remember { mutableStateOf(TextFieldValue(card.back)) }
     var resetDifficulty by remember { mutableStateOf(false) }
-
-    var imageFrontUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val launcherFront = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageFrontUri = uri
-    }
-
-    var imageBackUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val launcherBack = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imageBackUri = uri
-    }
 
     AlertDialog(onDismissRequest = {
         viewModel.popUpEditCard()
@@ -465,32 +410,14 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
                 onValueChange = { textState.value = it },
                 label = { Text(text = stringResource(id = R.string.fronside)) },
                 maxLines = 4,
-                //minLines = 3
-            )/*Row {
-                    IconButton(onClick = {}) {
-                        Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageFrontUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = { imageFrontUri = null }) {
-                        Text(text = "Clear image")
-                    }
-                }*/
+            )
             Spacer(modifier = Modifier.height(10.dp))
             TextField(
                 value = textState1.value,
                 onValueChange = { textState1.value = it },
                 label = { Text(text = stringResource(id = R.string.backside)) },
                 maxLines = 4,
-                //minLines = 3,
-            )/* Row {
-                     IconButton(onClick = { launcherBack.launch("image/*") }) {
-                         Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = if (imageBackUri == null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary)
-                     }
-                     Spacer(modifier = Modifier.width(10.dp))
-                     Button(onClick = { imageBackUri = null }) {
-                         Text(text = "Clear image")
-                     }
-                 }*/*/
+            )
             Spacer(modifier = Modifier.height(10.dp))
             Text(text = stringResource(id = R.string.reset_difficulty))
             Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
@@ -503,12 +430,3 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context, card: Card) {
         }
     })
 }
-
-@Composable
-fun SearchBar(viewModel: DeckScreenMenuViewModel) {
-    AlertDialog(
-        onDismissRequest = { viewModel.searchBar() },
-        confirmButton = { viewModel.searchBar() })
-}
-
-

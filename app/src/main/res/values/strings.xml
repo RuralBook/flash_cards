@@ -28,4 +28,6 @@
     <string name="decks">Decks</string>
     <string name="folder">Folder</string>
     <string name="next">next</string>
+    <string name="export">export</string>
+    <string name="import_string">import</string>
 </resources>

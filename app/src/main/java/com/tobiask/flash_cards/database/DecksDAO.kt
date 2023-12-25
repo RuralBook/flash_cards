@@ -25,12 +25,16 @@ interface DecksDAO {
     @Query("SELECT * FROM deck")
     fun getAllDecks(): Flow<List<Deck>>
 
+    @Query("SELECT * FROM deck")
+    suspend fun getAllDecksStatic(): List<Deck>
+
     @Query("SELECT id FROM deck WHERE parentFolder LIKE 0 ORDER BY important desc")
     fun getAllDecksId(): Flow<List<Int>>
 
-
     @Query("SELECT * FROM deck WHERE parentFolder LIKE :parent")
     fun getAllDecksWithParent(parent: Int): Flow<List<Deck>>
+    @Query("SELECT * FROM deck WHERE parentFolder LIKE :parent")
+    suspend fun getAllDecksWithParentStatic(parent: Int): List<Deck>
 
     @Query("DELETE FROM deck WHERE parentFolder LIKE :parent")
     suspend fun delAllDecksWithParent(parent: Int)
@@ -58,6 +62,19 @@ interface CardsDao {
 
     @Query("SELECT * FROM card WHERE deckId LIKE :id")
     suspend fun getCardsList(id: Int): List<Card>
+
+    @Query("SELECT * FROM card")
+    fun getAllCards(): Flow<List<Card>>
+
+    @Query("SELECT * FROM card")
+    suspend fun getAllCardsStatic(): List<Card>
+
+    @Query("SELECT dueTo FROM card")
+    fun getAllCardsDueTo(): Flow<List<String>>
+
+    @Query("SELECT dueTo FROM card WHERE deckId LIKE :id")
+    fun getCardsDueTo(id: Int): Flow<List<String>>
+
 
     @Query("SELECT backImg AND frontImg FROM card WHERE id LIKE :id1")
     fun getUri(id1: Int): Flow<String>
@@ -87,6 +104,9 @@ interface FolderDao {
 
     @Query("SELECT * FROM folder")
     fun getAllFolder(): Flow<List<Folder>>
+
+    @Query("SELECT * FROM folder")
+    suspend fun getAllFoldersStatic(): List<Folder>
 
     @Query("SELECT * FROM folder WHERE parentFolder like :id")
     fun getAllFolderById(id: Int): Flow<List<Folder>>

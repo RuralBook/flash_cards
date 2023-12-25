@@ -18,6 +18,9 @@ import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.DecksDAO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -40,12 +43,16 @@ class ExportImportScreenViewModel(
     val context: Context
 ) : ViewModel() {
 
+    private val _cardsToImport = MutableStateFlow(mutableListOf<Card>())
+    val cardsToImport = _cardsToImport.asStateFlow()
+
     fun export() {
         val json = JSONObject()
         viewModelScope.launch {
             val cards = dao.getCardsList(id)
             json.put("Cards", addCards(cards))
             saveJson(json.toString())
+            Toast.makeText(context, "Saved Json-Backup to Downloads Folder", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -136,6 +143,7 @@ class ExportImportScreenViewModel(
                     deckId = id,
                     dueTo = LocalDate.now().toString()
                 )
+                //_cardsToImport.value.plus(card)
                 viewModelScope.launch {
                     dao.addCard(card)
                 }

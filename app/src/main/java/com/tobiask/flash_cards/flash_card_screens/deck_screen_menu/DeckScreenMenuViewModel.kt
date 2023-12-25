@@ -23,8 +23,14 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, deckId:
     private val _showPopUpAdd = MutableStateFlow(false)
     val showPopUpAdd = _showPopUpAdd.asStateFlow()
 
-    private val _showSearchBar = MutableStateFlow(false)
-    val showSearchBar = _showSearchBar.asStateFlow()
+    private val _editCard = MutableStateFlow(Card(
+        front = "",
+        back = "",
+        dueTo = "",
+        difficulty = 0,
+        deckId = 0
+    ))
+    val editCard = _editCard.asStateFlow()
 
     private val _showPopUpEdit = MutableStateFlow(false)
     val showPopUpEdit = _showPopUpEdit.asStateFlow()
@@ -32,12 +38,28 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, deckId:
     private val _showPopUpEditCard = MutableStateFlow(false)
     val showPopUpEditCard = _showPopUpEditCard.asStateFlow()
 
-    fun editCardValue(card: Card): Card{
-        return card
+
+    private var _known = MutableStateFlow(0)
+    val known = _known.asStateFlow()
+    private var _unknown = MutableStateFlow(0)
+    val unknown = _unknown.asStateFlow()
+    private var _ok_known = MutableStateFlow(0)
+    val ok_known = _ok_known.asStateFlow()
+
+    fun addKnown(){
+        _known.value++
     }
 
-    fun searchBar(){
-        _showSearchBar.value = !_showSearchBar.value
+    fun addUnKnown(){
+        _unknown.value++
+    }
+
+    fun addOkKnown(){
+        _ok_known.value++
+    }
+
+    fun editCardValue(card: Card){
+        _editCard.value = card
     }
 
     fun popUpAdd() {

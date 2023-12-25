@@ -11,6 +11,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -64,13 +64,8 @@ import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenuViewModel
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.CardFace
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.FlipCard
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import java.time.LocalDate
-import java.time.LocalTime
-import kotlin.concurrent.timer
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
@@ -89,7 +84,6 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, dao1: DecksDAO) {
     if (cards.isNotEmpty()){
 
         Log.d("cardSize", cards.size.toString())
-
 
         Scaffold(topBar = {
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth(1f)){
@@ -261,9 +255,6 @@ fun QuizCard(
                                         i++
                                         card = cards[i]
                                     }
-
-
-
                                 }else {cardsNotEmpty = false}
                             }) { Text(text = stringResource(id = R.string.next)) }
                         }
