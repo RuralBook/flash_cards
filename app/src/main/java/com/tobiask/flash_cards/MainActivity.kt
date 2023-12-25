@@ -45,9 +45,8 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = Screen.MainScreen.route){
                         composable(route = Screen.MainScreen.route) {
-                            MainScreen(navController, db.decksDao, db.folderDao, db.cardsDao)
+                            MainScreen(navController, db.decksDao, db.folderDao, db.cardsDao, db.statsDao)
                         }
-
                         composable(route = "${Screen.DeckScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
                                 type = NavType.IntType
@@ -57,9 +56,8 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            DeckScreenMenu(dao = db.decksDao, daoCard = db.cardsDao,id = id, navController)
+                            DeckScreenMenu(dao = db.decksDao, daoCard = db.cardsDao,id = id, statsDao = db.statsDao, navController =  navController)
                         }
-
                         composable(route = "${Screen.FolderScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
                                 type = NavType.IntType
@@ -77,7 +75,6 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
-
                         composable(route = "${Screen.QuizScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
                                 type = NavType.IntType
@@ -87,7 +84,7 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao, navController)
+                            QuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao, db.statsDao, navController)
                         }
                         composable(route = "${Screen.TestQuizScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
@@ -98,9 +95,8 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            TrainingQuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao)
+                            TrainingQuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao, statsDao = db.statsDao)
                         }
-
                         composable(route = "${Screen.ExportImportScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
                                 type = NavType.IntType
@@ -116,7 +112,6 @@ class MainActivity : ComponentActivity() {
                         {
                             SettingsScreen(db.cardsDao, db.decksDao, db.folderDao)
                         }
-
                     }
                 }
             }

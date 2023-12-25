@@ -111,3 +111,18 @@ interface FolderDao {
     @Query("SELECT * FROM folder WHERE parentFolder like :id")
     fun getAllFolderById(id: Int): Flow<List<Folder>>
 }
+
+@Dao
+interface StatsDao {
+    @Update(Stats::class)
+    suspend fun updateStats(stats: Stats)
+
+    @Insert(Stats::class)
+    suspend fun addStats(stats: Stats)
+
+    @Query("SELECT * FROM Stats WHERE id LIKE 1")
+    fun getStats(): Flow<List<Stats>>
+
+    @Query("SELECT * FROM Stats WHERE id LIKE 1")
+    suspend fun getStatsStatic(): List<Stats>
+}

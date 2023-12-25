@@ -77,6 +77,7 @@ import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
+import com.tobiask.flash_cards.database.StatsDao
 import com.tobiask.flash_cards.navigation.Screen
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
@@ -86,14 +87,14 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: NavController) {
+fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, statsDao: StatsDao , id: Int, navController: NavController) {
 
     val context = LocalContext.current
 
     val viewModel =
         viewModel<DeckScreenMenuViewModel>(factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DeckScreenMenuViewModel(dao, daoCard, id) as T
+                return DeckScreenMenuViewModel(dao, daoCard,statsDao, id) as T
             }
         })
     val deck = viewModel.dao.getDeck(id).collectAsState(initial = Deck(0, ""))

@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
@@ -68,6 +69,8 @@ import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.database.Folder
 import com.tobiask.flash_cards.database.FolderDao
+import com.tobiask.flash_cards.database.Stats
+import com.tobiask.flash_cards.database.StatsDao
 import com.tobiask.flash_cards.navigation.Screen
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
@@ -78,7 +81,8 @@ fun MainScreen(
     navController: NavController,
     dao: DecksDAO,
     folderDao: FolderDao,
-    cardsDao: CardsDao
+    cardsDao: CardsDao,
+    statsDao: StatsDao
 ) {
 
     // View Model Impl.
@@ -87,7 +91,7 @@ fun MainScreen(
         factory =
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MainScreenViewModel(dao, folderDao, cardsDao) as T
+                return MainScreenViewModel(dao, folderDao, cardsDao, statsDao) as T
             }
         }
     )
@@ -97,6 +101,16 @@ fun MainScreen(
     val mainDecks = viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
     val folder = viewModel.folderDao.getAllFolderById(0).collectAsState(initial = emptyList())
     val cards = viewModel.cards.collectAsState(initial = emptyList())
+    val stats = viewModel.stats.collectAsState(initial = listOf(Stats(
+        learnedCounter = 0,
+        streak = 0,
+        lastLearned = ""
+    )))
+
+    if (stats.value.isEmpty()){
+        viewModel.insertStatsFirstTime()
+    }
+
     if (popupStateAdd) {
         AddDeck(viewModel = viewModel, context)
     }
@@ -119,13 +133,16 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(modifier = Modifier.size(50.dp)) {
-                                Text(
-                                    text = viewModel.getCardsToLearn(cards.value).toString(),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Normal,
-                                    textAlign = TextAlign.Center,
-                                    softWrap = true
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clickable {
+
+                                    }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.BarChart,
+                                    contentDescription = "statistics"
                                 )
                             }
 
@@ -144,7 +161,9 @@ fun MainScreen(
                                     .clickable {
                                         val routeWithArgs = Screen.SettingsScreen.route
                                         navController.navigate(routeWithArgs)
-                                    }, Alignment.Center) {
+                                    },
+                                Alignment.Center
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = "settings"

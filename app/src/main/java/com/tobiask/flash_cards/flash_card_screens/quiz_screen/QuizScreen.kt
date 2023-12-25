@@ -70,17 +70,29 @@ import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.tobiask.flash_cards.PieChartInput
+import com.tobiask.flash_cards.database.StatsDao
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuizScreen(id: Int, dao: CardsDao, dao1: DecksDAO, navController: NavController) {
+fun QuizScreen(
+    id: Int,
+    dao: CardsDao,
+    dao1: DecksDAO,
+    statsDao: StatsDao,
+    navController: NavController
+) {
 
     val viewModel =
         viewModel<DeckScreenMenuViewModel>(factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DeckScreenMenuViewModel(daoCards = dao, dao = dao1, deckId = id) as T
+                return DeckScreenMenuViewModel(
+                    daoCards = dao,
+                    dao = dao1,
+                    statsDao = statsDao,
+                    deckId = id
+                ) as T
             }
         })
 
@@ -103,11 +115,11 @@ fun QuizScreen(id: Int, dao: CardsDao, dao1: DecksDAO, navController: NavControl
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                QuizCard(id, cards, viewModel, dao, navController)
+                QuizCard(id, cards, viewModel, dao, statsDao, navController)
             }
         }
     } else {
-        AnalyseScreen(known, ok_known, unknown, navController)
+        AnalyseScreen(known, ok_known, unknown, navController, viewModel, false)
     }
 }
 
@@ -119,6 +131,7 @@ fun QuizCard(
     cards: MutableList<QuizCards>,
     viewModel: DeckScreenMenuViewModel,
     cardsDao: CardsDao,
+    statsDao: StatsDao,
     navController: NavController
 ) {
     var cardFace by remember {
@@ -287,7 +300,6 @@ fun QuizCard(
                                         cardsNotEmpty = false
                                     }
                                     Log.d("test", card.toString())
-                                    //card.let { onClick(0, it) }
                                 }) { Text(text = stringResource(id = R.string.difficulty_again)) }
                             }
                             Spacer(modifier = Modifier.width(10.dp))
@@ -329,24 +341,45 @@ fun QuizCard(
             }
         }
     } else {
-        AnalyseScreen(known.value, ok_known.value, unknown.value, navController = navController)
+        AnalyseScreen(
+            known.value,
+            ok_known.value,
+            unknown.value,
+            navController = navController,
+            viewModel,
+            true
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnalyseScreen(known: Int, ok_known: Int, unknown: Int, navController: NavController) {
+fun AnalyseScreen(
+    known: Int,
+    ok_known: Int,
+    unknown: Int,
+    navController: NavController,
+    viewModel: DeckScreenMenuViewModel,
+    update: Boolean
+) {
+
+    if (update) {
+        viewModel.updateStats()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(text = "Results") })
         }
-    ){ it
+    ) {
+        it
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(it),
             verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally){
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             PieChart(
                 modifier = Modifier.size(500.dp),
                 input = listOf(
@@ -370,32 +403,36 @@ fun AnalyseScreen(known: Int, ok_known: Int, unknown: Int, navController: NavCon
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                Box(modifier = Modifier
-                    .size(15.dp)
-                    .background(Color.Green))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .background(Color.Green)
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "Well known -> $known")
             }
-
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                Box(modifier = Modifier
-                    .size(15.dp)
-                    .background(Color(0xffffa500)))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .background(Color(0xffffa500))
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "Ok known -> $ok_known")
             }
-
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                Box(modifier = Modifier
-                    .size(15.dp)
-                    .background(Color.Red))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .background(Color.Red)
+                )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(text = "unknown -> $unknown")
             }
@@ -406,16 +443,8 @@ fun AnalyseScreen(known: Int, ok_known: Int, unknown: Int, navController: NavCon
                 Text(text = "Next")
             }
         }
-        
     }
-    
 }
 
-@Preview
-@Composable
-fun Prev(){
-    val navController = rememberNavController()
-    AnalyseScreen(known = 5, ok_known = 7, unknown = 2, navController)
-}
 
 

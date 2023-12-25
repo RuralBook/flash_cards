@@ -1,5 +1,6 @@
 package com.tobiask.flash_cards.flash_card_screens.main_screen
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobiask.flash_cards.database.Card
@@ -8,17 +9,21 @@ import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.database.Folder
 import com.tobiask.flash_cards.database.FolderDao
+import com.tobiask.flash_cards.database.Stats
+import com.tobiask.flash_cards.database.StatsDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cardsDao: CardsDao): ViewModel() {
+class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cardsDao: CardsDao, val statsDao: StatsDao): ViewModel() {
     private val _showPopUp = MutableStateFlow(false)
     val showPopUp = _showPopUp.asStateFlow()
 
     val cards = cardsDao.getAllCardsDueTo()
+
+    val stats = statsDao.getStats()
 
     fun popUp(){
         _showPopUp.value = !_showPopUp.value
@@ -28,6 +33,18 @@ class MainScreenViewModel(val dao: DecksDAO, val folderDao: FolderDao, val cards
     //DATABASE FUNKTIONEN:
     //----------------------------------------------------------------------------------------------
 
+
+    fun insertStatsFirstTime() {
+        viewModelScope.launch {
+            statsDao.addStats(
+                Stats(
+                    learnedCounter = 0,
+                    streak = 0,
+                    lastLearned = LocalDate.now().minusDays(2).toString()
+                )
+            )
+        }
+    }
 
     fun addDeck(deck: Deck){
         viewModelScope.launch {

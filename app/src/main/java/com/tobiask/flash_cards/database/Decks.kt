@@ -57,3 +57,15 @@ data class Config(
     val language: String
 )
 
+@Entity
+data class Stats(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+
+    val learnedCounter: Int,
+
+    val streak: Int,
+
+    val lastLearned: String,
+)
+

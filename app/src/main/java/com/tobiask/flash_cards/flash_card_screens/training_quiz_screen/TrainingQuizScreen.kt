@@ -61,6 +61,7 @@ import com.tobiask.flash_cards.QuizCards
 import com.tobiask.flash_cards.R
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.DecksDAO
+import com.tobiask.flash_cards.database.StatsDao
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenuViewModel
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.CardFace
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.FlipCard
@@ -71,11 +72,11 @@ import kotlinx.coroutines.launch
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrainingQuizScreen(id: Int, dao: CardsDao, dao1: DecksDAO) {
+fun TrainingQuizScreen(id: Int, dao: CardsDao, dao1: DecksDAO, statsDao: StatsDao) {
 
     val viewModel = viewModel<DeckScreenMenuViewModel>(factory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return DeckScreenMenuViewModel(daoCards = dao, dao = dao1, deckId = id) as T
+            return DeckScreenMenuViewModel(daoCards = dao, dao = dao1, statsDao = statsDao, deckId = id) as T
         }
     })
 
@@ -132,7 +133,7 @@ fun QuizCard(
         cardsNotEmpty = false
     }
 
-    var co = rememberCoroutineScope()
+    val co = rememberCoroutineScope()
 
     if (cardsNotEmpty){
     Box(modifier = Modifier.fillMaxSize()) {
