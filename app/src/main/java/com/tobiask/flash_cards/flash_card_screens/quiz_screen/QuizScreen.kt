@@ -71,6 +71,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.tobiask.flash_cards.PieChartInput
 import com.tobiask.flash_cards.database.StatsDao
+import kotlinx.coroutines.runBlocking
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
@@ -227,11 +228,14 @@ fun QuizCard(
                                         .fillMaxSize(),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    card.let {
-                                        Text(
-                                            text = (if (frontIsQuestion) it.backSide else it.frontSide),
-                                            fontSize = 22.5.sp
-                                        )
+                                    if (cardFace == CardFace.Back) {
+                                        card.let {
+                                            Text(
+                                                text = (if (frontIsQuestion) it.backSide else it.frontSide),
+                                                fontSize = 22.5.sp
+                                            )
+
+                                        }
                                     }
                                 }
                             },
@@ -254,7 +258,7 @@ fun QuizCard(
                     AnimatedVisibility(
                         visible = visible,
                         enter = slideInVertically(initialOffsetY = { 15 }) + expandVertically(
-                            expandFrom = Alignment.Bottom
+                            expandFrom = Alignment.Top
                         ) + scaleIn(
                             initialScale = 0f, transformOrigin = TransformOrigin(0.75f, 0f)
                         ) + fadeIn(initialAlpha = 0.0f),
@@ -274,32 +278,25 @@ fun QuizCard(
                                     viewModel.addOkKnown()
                                     if (cards.size - 1 > i) {
                                         cardFace = CardFace.Front;
-                                        co.launch {
-                                            delay(500);
-                                            i++
-                                            card = cards[i]
-                                        }
+                                        i++
+                                        card = cards[i]
+                                    }else {
+                                        cardsNotEmpty = false
                                     }
                                 }) { Text(text = stringResource(id = R.string.difficulty_difficult)) }
 
                                 Button(onClick = {
-                                    // handle difficult card:
                                     viewModel.again(card, cardsDao, id)
                                     cards.add(card)
                                     viewModel.addUnKnown()
-                                    Log.d("test", cards.size.toString() + " | " + i.toString())
                                     if (cards.size - 1 > i) {
                                         cardFace = CardFace.Front
-                                        co.launch {
-                                            delay(500);
-                                            i++
-                                            card = cards[i]
-                                        }
+                                        i++
+                                        card = cards[i]
 
                                     } else {
                                         cardsNotEmpty = false
                                     }
-                                    Log.d("test", card.toString())
                                 }) { Text(text = stringResource(id = R.string.difficulty_again)) }
                             }
                             Spacer(modifier = Modifier.width(10.dp))
@@ -309,11 +306,8 @@ fun QuizCard(
                                     viewModel.addOkKnown()
                                     if (cards.size - 1 > i) {
                                         cardFace = CardFace.Front
-                                        co.launch {
-                                            delay(500);
-                                            i++
-                                            card = cards[i]
-                                        }
+                                        i++
+                                        card = cards[i]
 
                                     } else {
                                         cardsNotEmpty = false
@@ -325,11 +319,8 @@ fun QuizCard(
                                     viewModel.addKnown()
                                     if (cards.size - 1 > i) {
                                         cardFace = CardFace.Front
-                                        co.launch {
-                                            delay(500);
-                                            i++
-                                            card = cards[i]
-                                        }
+                                        i++
+                                        card = cards[i]
                                     } else {
                                         cardsNotEmpty = false
                                     }

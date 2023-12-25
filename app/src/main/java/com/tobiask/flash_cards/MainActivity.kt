@@ -23,6 +23,7 @@ import com.tobiask.flash_cards.flash_card_screens.training_quiz_screen.TrainingQ
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenu
 import com.tobiask.flash_cards.flash_card_screens.exportImportScreen.ExportImportScreen
 import com.tobiask.flash_cards.flash_card_screens.settings_screen.SettingsScreen
+import com.tobiask.flash_cards.flash_card_screens.statistics_screen.StatisticsScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
 
 class MainActivity : ComponentActivity() {
@@ -111,6 +112,9 @@ class MainActivity : ComponentActivity() {
                         composable(route = Screen.SettingsScreen.route)
                         {
                             SettingsScreen(db.cardsDao, db.decksDao, db.folderDao)
+                        }
+                        composable(route = Screen.statsScreen.route){
+                            StatisticsScreen(statsDao = db.statsDao)
                         }
                     }
                 }

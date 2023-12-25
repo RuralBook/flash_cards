@@ -1,6 +1,7 @@
 package com.tobiask.flash_cards.flash_card_screens.deck_screen_menu
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -111,10 +112,11 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
             }
         }
         val lastLeaned = LocalDate.parse(stats[0].lastLearned)
-        val today = LocalDate.now().minusDays(1)
+        val today = LocalDate.now()
         val learnedCounter = stats[0].learnedCounter + 1
-        val streak = if (today.isEqual(lastLeaned)) stats[0].streak + 1 else 0
+        val streak = if (today.minusDays(1) == lastLeaned) stats[0].streak + 1 else if (today == lastLeaned) stats[0].streak else 0
         viewModelScope.launch {
+            Log.d("info", "$today, $lastLeaned, $learnedCounter, $streak")
             statsDao.updateStats(
                 Stats(
                     id = stats[0].id,

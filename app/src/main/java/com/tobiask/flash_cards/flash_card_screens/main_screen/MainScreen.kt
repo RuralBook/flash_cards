@@ -100,7 +100,7 @@ fun MainScreen(
     val popupStateAdd by viewModel.showPopUp.collectAsState()
     val mainDecks = viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
     val folder = viewModel.folderDao.getAllFolderById(0).collectAsState(initial = emptyList())
-    val cards = viewModel.cards.collectAsState(initial = emptyList())
+    //val cards = viewModel.cards.collectAsState(initial = emptyList())
     val stats = viewModel.stats.collectAsState(initial = listOf(Stats(
         learnedCounter = 0,
         streak = 0,
@@ -137,8 +137,9 @@ fun MainScreen(
                                 modifier = Modifier
                                     .size(50.dp)
                                     .clickable {
-
-                                    }
+                                        navController.navigate(Screen.statsScreen.route)
+                                    },
+                                Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.BarChart,
@@ -154,7 +155,6 @@ fun MainScreen(
                                 textAlign = TextAlign.Center,
                                 softWrap = true
                             )
-
                             Box(
                                 Modifier
                                     .size(50.dp)
