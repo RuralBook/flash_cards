@@ -107,6 +107,7 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, id: Int, navController: Nav
             viewModel = viewModel, context = context, deck.value
         )
     }
+
     val popUpAdd by viewModel.showPopUpAdd.collectAsState()
     if (popUpAdd) {
         AddCard(viewModel = viewModel, context = context, deck = deck.value)
