@@ -22,7 +22,6 @@ import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreen
 import com.tobiask.flash_cards.flash_card_screens.training_quiz_screen.TrainingQuizScreen
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenu
 import com.tobiask.flash_cards.flash_card_screens.exportImportScreen.ExportImportScreen
-import com.tobiask.flash_cards.flash_card_screens.quiz_screen_remake.QuizScreenRemake
 import com.tobiask.flash_cards.flash_card_screens.settings_screen.SettingsScreen
 import com.tobiask.flash_cards.flash_card_screens.statistics_screen.StatisticsScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
