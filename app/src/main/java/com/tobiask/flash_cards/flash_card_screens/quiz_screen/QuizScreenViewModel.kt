@@ -1,88 +1,144 @@
 package com.tobiask.flash_cards.flash_card_screens.quiz_screen
 
-/*import android.net.Uri
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobiask.flash_cards.QuizCards
 import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 
-class QuizScreenViewModel(val dao: CardsDao): ViewModel() {
+class QuizScreenViewModel(val dao: CardsDao, val deckId: Int) : ViewModel() {
 
 
-    /*private val _cardFace= MutableStateFlow(CardFace.Front)
-    val cardFace = _cardFace.asStateFlow()*/
+    var cards = converter()
 
-    fun converter(cards: List<Card>): MutableList<QuizCards>{
-        val quizCards = mutableListOf<QuizCards>()
-        for (card in cards){
-            val buffer = QuizCards(id = card.id, frontSide = card.front, frontSideImg = Uri.parse(card.frontImg) ,backSide = card.back, backSideImg = Uri.parse(card.backImg) , oldDifficulty = card.difficulty, difficulty = card.difficulty, difficultyTimes = card.difficultyTimes)
-            quizCards.add(buffer)
-        }
-        return quizCards.toMutableList()
-    }
+    var _isFetched = false
 
-    fun getQuizCards(cards: List<Card>): List<Card>{
-        val ids = mutableListOf<Card>()
-        val today = LocalDate.now()
-        for(card in cards){
-            val date = LocalDate.parse(card.dueTo)
-            //Log.e("datum", "$date +  $today")
-            if (date.isBefore(today) || date.isEqual(today)){
-                ids.add(card)
+
+    fun converter(): MutableList<QuizCards> {
+        var cards = mutableListOf<Card>()
+        viewModelScope.launch {
+            runBlocking {
+               cards = dao.getCardsList(deckId).toMutableList()
             }
         }
-        return ids
+        val quizCards = mutableListOf<QuizCards>()
+        val today = LocalDate.now()
+        for (card in cards) {
+            val date = LocalDate.parse(card.dueTo)
+            if (date.isBefore(today) || date.isEqual(today)) {
+                val buffer = QuizCards(
+                    id = card.id,
+                    frontSide = card.front,
+                    frontSideImg = null,
+                    backSide = card.back,
+                    backSideImg = null,
+                    oldDifficulty = card.difficulty,
+                    difficulty = card.difficulty,
+                    difficultyTimes = card.difficultyTimes
+                )
+                quizCards.add(buffer)
+            }
+            _isFetched = true
+        }
+        return quizCards.shuffled().toMutableList()
     }
 
-    fun again(card: QuizCards, dao: CardsDao, deckId:Int): QuizCards{
-        return if(card.difficulty == 0 && card.difficultyTimes == 1){
+    fun again(card: QuizCards, dao: CardsDao, deckId: Int): Boolean {
+
+        var toRepeat = false
+
+        if (card.difficulty == 0 && card.difficultyTimes == 1) {
             card.difficulty = 1
             card.difficultyTimes = 0
-            viewModelScope.launch {
-                dao.updateCard(Card(id = card.id, deckId = deckId ,front = card.frontSide, back = card.backSide, difficulty = card.difficulty, difficultyTimes =  card.difficultyTimes, dueTo = LocalDate.now().plusDays(1).toString()))
-
-            }
-            //Log.e("system", Runtime.getRuntime().maxMemory().toString())
-            card
+            toRepeat = false
         } else {
             card.difficulty = 0
             card.difficultyTimes = 1
-            viewModelScope.launch {
-                dao.updateCard(Card(id = card.id, deckId = deckId ,front = card.frontSide, back = card.backSide, difficulty = card.difficulty, difficultyTimes =  card.difficultyTimes, dueTo = LocalDate.now().plusDays(0).toString()))
-            }
-            card
+            toRepeat = true
         }
+
+        viewModelScope.launch {
+            runBlocking {
+                dao.updateCard(
+                    Card(
+                        id = card.id,
+                        deckId = deckId,
+                        front = card.frontSide,
+                        back = card.backSide,
+                        difficulty = card.difficulty,
+                        difficultyTimes = card.difficultyTimes,
+                        dueTo = LocalDate.now().plusDays(if (card.difficulty == 0) 0 else 1).toString()
+                    )
+                )
+            }
+        }
+
+        return toRepeat
     }
 
-    fun dificult(card: QuizCards, dao: CardsDao, deckId:Int): QuizCards{
-        if (card.difficulty == 1) card.difficultyTimes +=1 else card.difficultyTimes = 0
+
+    fun difficult(card: QuizCards, dao: CardsDao, deckId: Int): QuizCards {
+        if (card.difficulty == 1) card.difficultyTimes += 1 else card.difficultyTimes = 0
         card.difficulty = 1
         viewModelScope.launch {
-            dao.updateCard(Card(id = card.id, deckId = deckId, front = card.frontSide, back = card.backSide, difficulty = card.difficulty, difficultyTimes =  card.difficultyTimes, dueTo = LocalDate.now().plusDays(1).toString()))
+            dao.updateCard(
+                Card(
+                    id = card.id,
+                    deckId = deckId,
+                    front = card.frontSide,
+                    back = card.backSide,
+                    difficulty = card.difficulty,
+                    difficultyTimes = card.difficultyTimes,
+                    dueTo = LocalDate.now().plusDays(1).toString()
+                )
+            )
         }
         return card
     }
 
-    fun well(card: QuizCards, dao: CardsDao, deckId:Int): QuizCards{
-        if (card.difficulty == 2) card.difficultyTimes +=1 else card.difficultyTimes = 0
+    fun well(card: QuizCards, dao: CardsDao, deckId: Int): QuizCards {
+        if (card.difficulty == 2) card.difficultyTimes += 1 else card.difficultyTimes = 0
         card.difficulty = 2
         viewModelScope.launch {
-            dao.updateCard(Card(id = card.id, deckId = deckId ,front = card.frontSide, back = card.backSide, difficulty = card.difficulty, difficultyTimes =  card.difficultyTimes, dueTo = LocalDate.now().plusDays(3).toString()))
+            dao.updateCard(
+                Card(
+                    id = card.id,
+                    deckId = deckId,
+                    front = card.frontSide,
+                    back = card.backSide,
+                    difficulty = card.difficulty,
+                    difficultyTimes = card.difficultyTimes,
+                    dueTo = LocalDate.now().plusDays(3).toString()
+                )
+            )
         }
         return card
     }
 
-    fun easy(card: QuizCards, dao: CardsDao, deckId:Int): QuizCards{
-        if (card.difficulty == 3){
-            if (card.difficultyTimes == 2){
+    fun easy(card: QuizCards, dao: CardsDao, deckId: Int): QuizCards {
+        if (card.difficulty == 3) {
+            if (card.difficultyTimes == 2) {
                 card.difficulty = 4
                 card.difficultyTimes = 1
                 viewModelScope.launch {
-                    dao.updateCard(Card(id = card.id, deckId = deckId ,front = card.frontSide, back = card.backSide, difficulty = card.difficulty, difficultyTimes =  card.difficultyTimes, dueTo = LocalDate.now().plusDays(14).toString()))
+                    dao.updateCard(
+                        Card(
+                            id = card.id,
+                            deckId = deckId,
+                            front = card.frontSide,
+                            back = card.backSide,
+                            difficulty = card.difficulty,
+                            difficultyTimes = card.difficultyTimes,
+                            dueTo = LocalDate.now().plusDays(14).toString()
+                        )
+                    )
                 }
                 return card
             } else {
@@ -103,8 +159,8 @@ class QuizScreenViewModel(val dao: CardsDao): ViewModel() {
                 return card
             }
         }
-        if (card.difficulty == 4){
-            if (card.difficultyTimes == 3){
+        if (card.difficulty == 4) {
+            if (card.difficultyTimes == 3) {
                 card.difficulty = 5
                 card.difficultyTimes = 1
                 viewModelScope.launch {
@@ -139,7 +195,7 @@ class QuizScreenViewModel(val dao: CardsDao): ViewModel() {
                 return card
             }
         }
-        if (card.difficulty == 5){
+        if (card.difficulty == 5) {
             card.difficultyTimes++
             viewModelScope.launch {
                 dao.updateCard(
@@ -157,7 +213,7 @@ class QuizScreenViewModel(val dao: CardsDao): ViewModel() {
             return card
         }
         card.difficulty = 3
-        card.difficultyTimes =1
+        card.difficultyTimes = 1
         viewModelScope.launch {
             dao.updateCard(
                 Card(
@@ -175,4 +231,4 @@ class QuizScreenViewModel(val dao: CardsDao): ViewModel() {
     }
 
 
-}*/
+}

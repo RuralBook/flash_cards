@@ -86,8 +86,7 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, dao1: DecksDAO, statsDao: StatsDa
             }
         })
 
-    val cards =
-        viewModel.converterTrainer(viewModel.cards.collectAsState(initial = emptyList()).value)
+    val cards = mutableListOf<QuizCards>()
 
     if (cards.isNotEmpty()) {
 

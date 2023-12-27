@@ -100,7 +100,7 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, statsDao: StatsDao , id: In
     val deck = viewModel.dao.getDeck(id).collectAsState(initial = Deck(0, ""))
     val popUpEdit by viewModel.showPopUpEdit.collectAsState()
 
-    val cards = viewModel.cards.collectAsState(initial = emptyList())
+    val cards = viewModel.DeckCards.collectAsState(initial = emptyList())
 
 
     if (popUpEdit) {

@@ -1,8 +1,6 @@
 package com.tobiask.flash_cards.flash_card_screens.deck_screen_menu
 
-import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobiask.flash_cards.QuizCards
@@ -13,18 +11,37 @@ import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.database.Stats
 import com.tobiask.flash_cards.database.StatsDao
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 
-class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val statsDao: StatsDao, deckId: Int) :
+class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val statsDao: StatsDao, val deckId: Int) :
     ViewModel() {
 
-    val cards = daoCards.getCards(deckId)
+    var _cards = MutableStateFlow( mutableListOf<QuizCards>())
+    val cards = _cards.asStateFlow()
+
+    val DeckCards = daoCards.getCards(deckId)
+
+    var _isFetched = MutableStateFlow(false)
+    val isFetched = _isFetched.asStateFlow()
+
+    fun getCards(){
+        var cards = mutableListOf<QuizCards>()
+        viewModelScope.launch {
+            runBlocking {
+                _cards.value = converter(daoCards.getCardsList(deckId)).toMutableList()
+            }
+        }
+    }
+
+    fun addCard(card: QuizCards){
+        _cards.value = _cards.value.toMutableList().apply { add(card) }
+    }
 
     private val _showPopUpAdd = MutableStateFlow(false)
     val showPopUpAdd = _showPopUpAdd.asStateFlow()
@@ -131,51 +148,52 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
         }
     }
 
-    fun converter(cards: List<Card>): MutableList<QuizCards> {
-        val quizCards = mutableListOf<QuizCards>()
-        val today = LocalDate.now()
-        for (card in cards.shuffled()) {
-            val date = LocalDate.parse(card.dueTo)
-            if (date.isBefore(today) || date.isEqual(today)) {
-                val buffer = QuizCards(
-                    id = card.id,
-                    frontSide = card.front,
-                    frontSideImg = null,
-                    backSide = card.back,
-                    backSideImg = null,
-                    oldDifficulty = card.difficulty,
-                    difficulty = card.difficulty,
-                    difficultyTimes = card.difficultyTimes
-                )
-                quizCards.add(buffer)
+    fun converter(cards: List<Card>): List<QuizCards> {
+        if (!_isFetched.value) {
+            val quizCards = mutableListOf<QuizCards>()
+            val today = LocalDate.now()
+            for (card in cards) {
+                val date = LocalDate.parse(card.dueTo)
+                if (date.isBefore(today) || date.isEqual(today)) {
+                    val buffer = QuizCards(
+                        id = card.id,
+                        frontSide = card.front,
+                        frontSideImg = null,
+                        backSide = card.back,
+                        backSideImg = null,
+                        oldDifficulty = card.difficulty,
+                        difficulty = card.difficulty,
+                        difficultyTimes = card.difficultyTimes
+                    )
+                    quizCards.add(buffer)
+                }
             }
+            _isFetched.value = true
+            return quizCards.shuffled()
         }
-        return quizCards.toMutableList()
-    }
-
-    fun converterTrainer(cards: List<Card>): MutableList<QuizCards> {
-        val quizCards = mutableListOf<QuizCards>()
-        for (card in cards.shuffled()) {
+        var quizCards = mutableListOf<QuizCards>()
+        cards.forEach {
             val buffer = QuizCards(
-                id = card.id,
-                frontSide = card.front,
+                id = it.id,
+                frontSide = it.front,
                 frontSideImg = null,
-                backSide = card.back,
+                backSide = it.back,
                 backSideImg = null,
-                oldDifficulty = card.difficulty,
-                difficulty = card.difficulty,
-                difficultyTimes = card.difficultyTimes
+                oldDifficulty = it.difficulty,
+                difficulty = it.difficulty,
+                difficultyTimes = it.difficultyTimes
             )
             quizCards.add(buffer)
         }
-        return quizCards.toMutableList()
+        return quizCards.shuffled()
+
     }
 
     fun again(card: QuizCards, dao: CardsDao, deckId: Int): QuizCards {
         return if (card.difficulty == 0 && card.difficultyTimes == 1) {
             card.difficulty = 1
             card.difficultyTimes = 0
-            viewModelScope.launch {
+           viewModelScope.launch {
                 dao.updateCard(
                     Card(
                         id = card.id,
@@ -192,7 +210,7 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
         } else {
             card.difficulty = 0
             card.difficultyTimes = 1
-            viewModelScope.launch {
+            /*viewModelScope.launch {
                 dao.updateCard(
                     Card(
                         id = card.id,
@@ -204,7 +222,7 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
                         dueTo = LocalDate.now().plusDays(0).toString()
                     )
                 )
-            }
+            }*/
             card
         }
     }
