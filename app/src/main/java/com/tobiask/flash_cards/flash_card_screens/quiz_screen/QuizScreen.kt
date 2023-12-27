@@ -79,10 +79,11 @@ fun QuizScreen(
     navController: NavController
 ) {
     val viewModel =
-    viewModel<QuizScreenViewModel>(factory = object : ViewModelProvider.Factory {
+        viewModel<QuizScreenViewModel>(factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return QuizScreenViewModel(
                     dao,
+                    statsDao,
                     id
                 ) as T
             }
@@ -93,9 +94,10 @@ fun QuizScreen(
         mutableStateOf(viewModel.cards)
     }
 
-    /*val known = viewModel.known.collectAsState().value
+    val known = viewModel.known.collectAsState().value
+    val ok_known = viewModel.ok_known.collectAsState().value
+    val difficult = viewModel.difficult.collectAsState().value
     val unknown = viewModel.unknown.collectAsState().value
-    val ok_known = viewModel.ok_known.collectAsState().value*/
 
     if (cards.isNotEmpty()) {
         Scaffold(topBar = {}) {
@@ -120,7 +122,6 @@ fun QuizScreen(
 
                 var frontIsQuestion by remember { mutableStateOf(true) }
 
-
                 var cardsNotEmpty by remember { mutableStateOf(true) }
                 if (cards.isEmpty()) {
                     cardsNotEmpty = false
@@ -136,7 +137,10 @@ fun QuizScreen(
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
 
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
                                 Text(
                                     text = if (cardFace == CardFace.Front) stringResource(id = R.string.question) else stringResource(
                                         id = R.string.answer
@@ -163,7 +167,8 @@ fun QuizScreen(
                                 }
                             }
                             Column(
-                                Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+                                Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 val configuration = LocalConfiguration.current
                                 val width = (configuration.screenWidthDp.dp / 5) * 4
@@ -184,7 +189,9 @@ fun QuizScreen(
                                                     Text(
                                                         text = (if (frontIsQuestion) it.frontSide else it.backSide),
                                                         fontSize = 22.5.sp,
-                                                        modifier = Modifier.verticalScroll(scrollState)
+                                                        modifier = Modifier.verticalScroll(
+                                                            scrollState
+                                                        )
                                                     )
                                                 }
 
@@ -228,7 +235,8 @@ fun QuizScreen(
                                     enter = slideInVertically(initialOffsetY = { 15 }) + expandVertically(
                                         expandFrom = Alignment.Top
                                     ) + scaleIn(
-                                        initialScale = 0f, transformOrigin = TransformOrigin(0.75f, 0f)
+                                        initialScale = 0f,
+                                        transformOrigin = TransformOrigin(0.75f, 0f)
                                     ) + fadeIn(initialAlpha = 0.0f),
 
                                     exit = slideOutVertically(targetOffsetY = { 15 }) + shrinkVertically(
@@ -243,7 +251,7 @@ fun QuizScreen(
                                         Column {
                                             Button(onClick = {
                                                 viewModel.difficult(card, dao, id)
-                                                //viewModel.addOkKnown()
+                                                viewModel.addDifficult()
                                                 if (cards.size - 1 > i) {
                                                     cardFace = CardFace.Front;
                                                     i++
@@ -254,10 +262,11 @@ fun QuizScreen(
                                             }) { Text(text = stringResource(id = R.string.difficulty_difficult)) }
                                             val co = rememberCoroutineScope()
                                             Button(onClick = {
-                                                val toRepeat = viewModel.again(card, dao , id)
-                                                if (toRepeat ) cards.add(card)
+                                                val toRepeat = viewModel.again(card, dao, id)
+                                                if (toRepeat) cards.add(card)
+                                                viewModel.addUnKnown()
                                                 Log.d("size", "${cards}")
-                                                if (cards.size -1 > i){
+                                                if (cards.size - 1 > i) {
                                                     i++
                                                     card = cards[i]
                                                     cardFace = CardFace.Front
@@ -271,7 +280,7 @@ fun QuizScreen(
                                         Column {
                                             Button(onClick = {
                                                 viewModel.well(card, dao, id)
-
+                                                viewModel.addOkKnown()
                                                 if (cards.size - 1 > i) {
                                                     cardFace = CardFace.Front
                                                     i++
@@ -284,7 +293,7 @@ fun QuizScreen(
 
                                             Button(onClick = {
                                                 viewModel.easy(card, dao, id)
-                                                //viewModel.addKnown()
+                                                viewModel.addKnown()
                                                 if (cards.size - 1 > i) {
                                                     cardFace = CardFace.Front
                                                     i++
@@ -300,244 +309,33 @@ fun QuizScreen(
                         }
                     }
                 } else {
-                    /*AnalyseScreen(
-                        known.value,
-                        ok_known.value,
-                        unknown.value,
+                    AnalyseScreen(
+                        known,
+                        ok_known,
+                        difficult,
+                        unknown,
                         navController = navController,
                         viewModel,
                         true,
                         cards.size
-                    )*/
+                    )
                 }
             }
         }
     } else {
-        //AnalyseScreen(known, ok_known, unknown, navController, viewModel, false, cards.size)
+        AnalyseScreen(known, ok_known, difficult , unknown, navController, viewModel, false, cards.size)
     }
 }
-
-
-/*@SuppressLint("CoroutineCreationDuringComposition", "UnrememberedMutableState")
-@Composable
-fun QuizCard(
-    id: Int,
-    viewModel: QuizScreenViewModel,
-    cardsDao: CardsDao,
-    statsDao: StatsDao,
-    navController: NavController
-) {
-    val cards = viewModel.cards.collectAsState(initial = emptyList<QuizCards>()).value
-        var cardFace by remember {
-            mutableStateOf(CardFace.Front)
-        }
-        var i by remember { mutableIntStateOf(0) }
-        var card by remember { mutableStateOf(cards[i]) }
-
-        val scrollState = rememberScrollState()
-
-        var frontIsQuestion by remember { mutableStateOf(true) }
-
-
-        var cardsNotEmpty by remember { mutableStateOf(true) }
-        if (cards.isEmpty()) {
-            cardsNotEmpty = false
-        }
-
-        var cardsSize by remember{ mutableStateOf(cards.size) }
-
-        if (cardsNotEmpty) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(10.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(
-                            text = if (cardFace == CardFace.Front) stringResource(id = R.string.question) else stringResource(
-                                id = R.string.answer
-                            ), fontStyle = FontStyle.Italic
-                        )
-
-                        // Which side is front and which is the answer:
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = stringResource(id = R.string.front_first_card))
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Switch(checked = frontIsQuestion, onCheckedChange = {
-                                frontIsQuestion = it
-                            }, thumbContent = if (frontIsQuestion) {
-                                {
-                                    Icon(
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                                    )
-                                }
-                            } else {
-                                null
-                            })
-                        }
-                    }
-                    Column(
-                        Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        val configuration = LocalConfiguration.current
-                        val width = (configuration.screenWidthDp.dp / 5) * 4
-                        Box() {
-                            FlipCard(
-                                cardFace = cardFace,
-                                onClick = { cardFace = cardFace.next },
-                                modifier = Modifier
-                                    .width(width = width)
-                                    .aspectRatio(ratio = 1f),
-                                front = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        card.let {
-                                            Text(
-                                                text = (if (frontIsQuestion) it.frontSide else it.backSide),
-                                                fontSize = 22.5.sp,
-                                                modifier = Modifier.verticalScroll(scrollState)
-                                            )
-                                        }
-
-                                    }
-                                },
-                                back = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        if (cardFace == CardFace.Back) {
-                                            card.let {
-                                                Text(
-                                                    text = (if (frontIsQuestion) it.backSide else it.frontSide),
-                                                    fontSize = 22.5.sp
-                                                )
-
-                                            }
-                                        }
-                                    }
-                                },
-                            )
-                        }
-                    }
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(125.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom
-                    ) {
-                        var visible by remember { mutableStateOf(false) }
-                        if (cardFace == CardFace.Back) {
-                            visible = true
-                        } else if (cardFace == CardFace.Front) {
-                            visible = false
-                        }
-                        AnimatedVisibility(
-                            visible = visible,
-                            enter = slideInVertically(initialOffsetY = { 15 }) + expandVertically(
-                                expandFrom = Alignment.Top
-                            ) + scaleIn(
-                                initialScale = 0f, transformOrigin = TransformOrigin(0.75f, 0f)
-                            ) + fadeIn(initialAlpha = 0.0f),
-
-                            exit = slideOutVertically(targetOffsetY = { 15 }) + shrinkVertically(
-                                shrinkTowards = Alignment.Top
-                            ) + scaleOut(
-                                transformOrigin = TransformOrigin(0.5f, 0f)
-                            ) + fadeOut(
-                                targetAlpha = 0f
-                            )
-                        ) {
-                            Row {
-                                Column {
-                                    Button(onClick = {
-                                        viewModel.difficult(card, cardsDao, id)
-                                        //viewModel.addOkKnown()
-                                        if (cards.size - 1 > i) {
-                                            cardFace = CardFace.Front;
-                                            i++
-                                            card = cards[i]
-                                        } else {
-                                            cardsNotEmpty = false
-                                        }
-                                    }) { Text(text = stringResource(id = R.string.difficulty_difficult)) }
-
-                                    Button(onClick = {
-                                        viewModel.again(card, cardsDao , id)
-                                        Log.d("size", "${cards}")
-                                        if (cards.size -1 > i){
-                                            i++
-                                            card = cards[i]
-                                            cardFace = CardFace.Front
-                                        } else {
-                                            cardsNotEmpty = false
-                                        }
-                                    }) { Text(text = stringResource(id = R.string.difficulty_again)) }
-
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Button(onClick = {
-                                        Log.d("size", "${cards}")
-                                        viewModel.well(card, cardsDao, id)
-                                        if (cardsSize - 1 > i) {
-                                            cardFace = CardFace.Front
-                                            i++
-                                            card = cards[i]
-
-                                        } else {
-                                            cardsNotEmpty = false
-                                        }
-                                    }) { Text(text = stringResource(id = R.string.difficulty_well)) }
-
-                                    Button(onClick = {
-                                        viewModel.easy(card, cardsDao, id)
-                                        //viewModel.addKnown()
-                                        if (cards.size - 1 > i) {
-                                            cardFace = CardFace.Front
-                                            i++
-                                            card = cards[i]
-                                        } else {
-                                            cardsNotEmpty = false
-                                        }
-                                    }) { Text(text = stringResource(id = R.string.difficulty_easy)) }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            /*AnalyseScreen(
-                known.value,
-                ok_known.value,
-                unknown.value,
-                navController = navController,
-                viewModel,
-                true,
-                cards.size
-            )*/
-        }
-}*/
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyseScreen(
     known: Int,
     ok_known: Int,
+    difficult: Int,
     unknown: Int,
     navController: NavController,
-    viewModel: DeckScreenMenuViewModel,
+    viewModel: QuizScreenViewModel,
     update: Boolean,
     cards: Int
 ) {
@@ -565,17 +363,22 @@ fun AnalyseScreen(
                     PieChartInput(
                         color = Color.Green,
                         value = known,
-                        description = "Super gekonnt"
+                        description = "einfach"
                     ),
                     PieChartInput(
                         color = Color(0xffffa500),
                         value = ok_known,
-                        description = "naja"
+                        description = "gut"
+                    ),
+                    PieChartInput(
+                        color = Color.Red,
+                        value = difficult,
+                        description = "schwer"
                     ),
                     PieChartInput(
                         color = Color.Red,
                         value = unknown,
-                        description = "garnicht gweusst"
+                        description = "unbekannt"
                     )
                 )
             )
@@ -589,7 +392,7 @@ fun AnalyseScreen(
                         .background(Color.Green)
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "Well known -> $known")
+                Text(text = "einfach gewusst -> $known")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -601,7 +404,7 @@ fun AnalyseScreen(
                         .background(Color(0xffffa500))
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "Ok known -> $ok_known")
+                Text(text = "gut gekonnt -> $ok_known")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -613,7 +416,19 @@ fun AnalyseScreen(
                         .background(Color.Red)
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "unknown -> $unknown")
+                Text(text = "shwer gewusst -> $difficult")
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .background(Color.Red)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "gar nicht gewusst -> $unknown")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = {
@@ -624,6 +439,3 @@ fun AnalyseScreen(
         }
     }
 }
-
-
-

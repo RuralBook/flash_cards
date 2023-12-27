@@ -1,11 +1,14 @@
 package com.tobiask.flash_cards.flash_card_screens.quiz_screen
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobiask.flash_cards.QuizCards
 import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
+import com.tobiask.flash_cards.database.Stats
+import com.tobiask.flash_cards.database.StatsDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,15 +16,61 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 
-class QuizScreenViewModel(val dao: CardsDao, val deckId: Int) : ViewModel() {
+class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckId: Int) : ViewModel() {
+
+//STATS:
+//__________________________________________________________________________________________________
+    private var _known = MutableStateFlow(0)
+    val known = _known.asStateFlow()
+    private var _unknown = MutableStateFlow(0)
+    val unknown = _unknown.asStateFlow()
+    private var _difficult = MutableStateFlow(0)
+    val difficult = _difficult.asStateFlow()
+    private var _ok_known = MutableStateFlow(0)
+    val ok_known = _ok_known.asStateFlow()
+
+    fun addKnown(){ _known.value++}
 
 
+    fun addUnKnown() { _unknown.value++ }
+
+    fun addDifficult() { _difficult.value++ }
+
+    fun addOkKnown() { _ok_known.value++ }
+
+    fun updateStats(cards: Int){
+        var stats = emptyList<Stats>()
+        viewModelScope.launch{
+            runBlocking {
+                stats = statsDao.getStatsStatic()
+            }
+        }
+        val lastLeaned = LocalDate.parse(stats[0].lastLearned)
+        val today = LocalDate.now()
+        val learnedCounter = stats[0].learnedCounter + 1
+        val streak = if (today.minusDays(1) == lastLeaned) stats[0].streak + 1 else if (today == lastLeaned) stats[0].streak else 0
+        viewModelScope.launch {
+            Log.d("info", "$today, $lastLeaned, $learnedCounter, $streak")
+            statsDao.updateStats(
+                Stats(
+                    id = stats[0].id,
+                    learnedCounter = learnedCounter ,
+                    streak = streak,
+                    lastLearned = LocalDate.now().toString(),
+                    learnedCardsCounter = stats[0].learnedCardsCounter + cards,
+                    firstUsage = stats[0].firstUsage,
+                    achievements = ""
+                )
+            )
+        }
+    }
+
+//CARDS:
+//__________________________________________________________________________________________________
     var cards = converter()
 
     var _isFetched = false
-
-
-    fun converter(): MutableList<QuizCards> {
+    private fun converter(): MutableList<QuizCards> {
         var cards = mutableListOf<Card>()
         viewModelScope.launch {
             runBlocking {
@@ -79,7 +128,6 @@ class QuizScreenViewModel(val dao: CardsDao, val deckId: Int) : ViewModel() {
                 )
             }
         }
-
         return toRepeat
     }
 

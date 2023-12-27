@@ -37,10 +37,6 @@ class SettingsScreenViewModel(
 ) : ViewModel() {
 
 
-    var folderID = 0
-    var decksID = 0
-    var cardsID = 0
-
     fun exportDatabase() {
         val json = JSONObject()
         viewModelScope.launch {
@@ -163,22 +159,26 @@ class SettingsScreenViewModel(
     }
 
 
-    private suspend fun saveFolders(folders: JSONArray){
-        for (i in 0 until folders.length()){
-            val folder= Folder(
-                id = folderID++,
+    private suspend fun saveFolders(folders: JSONArray) {
+        for (i in 0 until folders.length()) {
+            val folder = Folder(
+                id = folderDao.getNextFolderId(), // Get the next available folder ID
                 name = folders.getJSONObject(i).getString("name")
             )
-            folderDao.insertFolder(folder)
+            viewModelScope.launch {
+                runBlocking {
+                    folderDao.insertFolder(folder)
+                }
+            }
             val decks = folders.getJSONObject(i).getJSONArray("decks:")
             saveDecks(decks, folder.id)
         }
     }
 
-    private suspend fun saveDecks(decks: JSONArray, id: Int){
-        for (i in 0 until decks.length()){
+    private suspend fun saveDecks(decks: JSONArray, id: Int) {
+        for (i in 0 until decks.length()) {
             val deck = Deck(
-                id = decksID++,
+                id = decksDAO.getNextDeckId(), // Get the next available deck ID
                 name = decks.getJSONObject(i).getString("name"),
                 parentFolder = id
             )
