@@ -7,10 +7,11 @@ basic material3 flash card app
   - Deck Export + Import
   - Learning tracker
   - Training mode (a mode where you can learn all cards despite its "due-to" value)
+  - Image Support
 
   ### V1.3.5/1.4.0
   - Pop-Up Notification
-  - (maybe adding image Support) 
+  - (maybe adding multiple image Support) 
 
 ## known issues(fixes available in v1.3):
 - [x] ~~wrong text if u want to add a Folder~~
