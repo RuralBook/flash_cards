@@ -30,4 +30,5 @@
     <string name="next">next</string>
     <string name="export">export</string>
     <string name="import_string">import</string>
+    <string name="new_str">New</string>
 </resources>

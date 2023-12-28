@@ -1,4 +1,4 @@
-package com.tobiask.flash_cards.flash_card_screens.quiz_screen
+package com.tobiask.flash_cards.ui_elements
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState

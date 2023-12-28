@@ -1,22 +1,16 @@
 package com.tobiask.flash_cards.flash_card_screens.deck_screen_menu
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tobiask.flash_cards.QuizCards
+import com.tobiask.flash_cards.models.QuizCards
 import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
-import com.tobiask.flash_cards.database.Stats
 import com.tobiask.flash_cards.database.StatsDao
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 
 class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val statsDao: StatsDao, val deckId: Int) :

@@ -1,4 +1,4 @@
-package com.tobiask.flash_cards.flash_card_screens.statistics_screen.composables
+package com.tobiask.flash_cards.ui_elements
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas

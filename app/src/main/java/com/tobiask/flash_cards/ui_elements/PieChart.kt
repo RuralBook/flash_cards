@@ -1,8 +1,7 @@
-package com.tobiask.flash_cards
+package com.tobiask.flash_cards.ui_elements
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -23,8 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.tobiask.flash_cards.ui.theme.black
 import com.tobiask.flash_cards.ui.theme.gray
 import com.tobiask.flash_cards.ui.theme.white
-import kotlin.math.PI
-import kotlin.math.atan2
 
 
 @Composable

@@ -1,13 +1,24 @@
 package com.tobiask.flash_cards
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,11 +36,27 @@ import com.tobiask.flash_cards.flash_card_screens.exportImportScreen.ExportImpor
 import com.tobiask.flash_cards.flash_card_screens.settings_screen.SettingsScreen
 import com.tobiask.flash_cards.flash_card_screens.statistics_screen.StatisticsScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
+
+    private val request =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val isGranted = permissions.values.reduce { acc, b -> acc && b }
+            if (!isGranted) {
+                runBlocking {
+                    Toast.makeText(this@MainActivity, "In Order To Let this app Work those Permissions are nessesary", Toast.LENGTH_LONG).show()
+                    finish()
+                }
+
+            }
+        }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             Flash_cardsTheme {
                 val context = LocalContext.current
                 val db by lazy {
@@ -43,6 +70,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val allPermissionsGranted by remember {
+                        mutableStateOf(hasRequiredPermissions())
+                    }
+                    if (!allPermissionsGranted){
+                        request.launch(REQUIREDPERMISSIONS)
+                    }
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = Screen.MainScreen.route){
                         composable(route = Screen.MainScreen.route) {
@@ -96,7 +129,7 @@ class MainActivity : ComponentActivity() {
                         )
                         ) { entry ->
                             val id = entry.arguments?.getInt("id") ?: 0
-                            TrainingQuizScreen(id = id, dao = db.cardsDao, dao1 = db.decksDao, statsDao = db.statsDao)
+                            TrainingQuizScreen(id = id, dao = db.cardsDao, statsDao = db.statsDao)
                         }
                         composable(route = "${Screen.ExportImportScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {
@@ -121,4 +154,20 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    private fun hasRequiredPermissions(): Boolean{
+        return REQUIREDPERMISSIONS.all {
+            ContextCompat.checkSelfPermission(
+                applicationContext,
+                it
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+    companion object {
+        val REQUIREDPERMISSIONS  = arrayOf(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+    }
 }
+
+

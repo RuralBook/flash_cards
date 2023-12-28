@@ -27,7 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Switch
+import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -39,12 +39,14 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -59,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -68,6 +71,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -87,14 +91,20 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, statsDao: StatsDao , id: Int, navController: NavController) {
+fun DeckScreenMenu(
+    dao: DecksDAO,
+    daoCard: CardsDao,
+    statsDao: StatsDao,
+    id: Int,
+    navController: NavController
+) {
 
     val context = LocalContext.current
 
     val viewModel =
         viewModel<DeckScreenMenuViewModel>(factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DeckScreenMenuViewModel(dao, daoCard,statsDao, id) as T
+                return DeckScreenMenuViewModel(dao, daoCard, statsDao, id) as T
             }
         })
     val deck = viewModel.dao.getDeck(id).collectAsState(initial = Deck(0, ""))
@@ -131,7 +141,7 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, statsDao: StatsDao , id: In
             ) {
                 Text(
                     text = deck.value.name,
-                    fontSize = 27.5.sp,
+                    style = MaterialTheme.typography.headlineLarge,
                     textDecoration = TextDecoration.Underline,
                     textAlign = TextAlign.Center
                 )
@@ -205,9 +215,9 @@ fun DeckScreenMenu(dao: DecksDAO, daoCard: CardsDao, statsDao: StatsDao , id: In
             ) {
                 itemsIndexed(
                     cards.value,
-                    key = {_, card ->
-                    card.id
-                }
+                    key = { _, card ->
+                        card.id
+                    }
                 ) { _, row ->
                     RevealSwipe(modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
                         directions = setOf(
@@ -295,33 +305,63 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
 @Composable
 fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val textState = remember { mutableStateOf(TextFieldValue(deck.name)) }
-    AlertDialog(onDismissRequest = {
+    val configuration = LocalConfiguration.current
+    val height = (configuration.screenHeightDp.dp / 4) * 1
+    Dialog(onDismissRequest = {
         viewModel.popUpEdit()
-    }, confirmButton = {
-        Button(onClick = {
-            if (textState.value.text.isNotEmpty()) {
-                viewModel.popUpEdit()
-                viewModel.addDeck(
-                    Deck(
-                        name = textState.value.text,
-                        id = deck.id,
-                        parentFolder = deck.parentFolder,
-                        important = deck.important
+    }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text(text = stringResource(id = R.string.edit_deck),
+                        style = MaterialTheme.typography.titleLarge
                     )
+                }
+
+                OutlinedTextField(
+                    value = textState.value,
+                    onValueChange = { textState.value = it },
+                    label = { Text(text = stringResource(id = R.string.name_of_the_deck)) },
+                    maxLines = 2
                 )
-            } else {
-                Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT).show()
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        if (textState.value.text.isNotEmpty()) {
+                            viewModel.popUpEdit()
+                            viewModel.addDeck(
+                                Deck(
+                                    name = textState.value.text,
+                                    id = deck.id,
+                                    parentFolder = deck.parentFolder,
+                                    important = deck.important
+                                )
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                R.string.please_enter_a_name,
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.update))
+                    }
+                }
             }
-        }) {
-            Text(text = stringResource(id = R.string.update))
         }
-    }, title = {
-        Text(text = stringResource(id = R.string.edit_deck))
-    }, text = {
-        TextField(value = textState.value,
-            onValueChange = { textState.value = it },
-            label = { Text(text = stringResource(id = R.string.name_of_the_deck)) })
-    })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -329,48 +369,77 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
 fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val textState = remember { mutableStateOf(TextFieldValue()) }
     val textState1 = remember { mutableStateOf(TextFieldValue()) }
-    AlertDialog(onDismissRequest = {
+    val configuration = LocalConfiguration.current
+    val height = (configuration.screenHeightDp.dp / 4) * 2 // 4 = 5??
+    Dialog(onDismissRequest = {
         viewModel.popUpAdd()
-    }, confirmButton = {
-        Button(onClick = {
-            if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
-                viewModel.popUpAdd()
-                viewModel.addCard(
-                    Card(
-                        front = textState.value.text,
-                        frontImg = "",
-                        back = textState1.value.text,
-                        backImg = "",
-                        deckId = deck.id,
-                        folderRoute = 0,
-                        dueTo = LocalDate.now().toString()
+    }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text(
+                        text = stringResource(id = R.string.new_card),
+                        style = MaterialTheme.typography.titleLarge
                     )
-                )
-            } else {
-                Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT).show()
+                }
+
+                Column(verticalArrangement = Arrangement.SpaceBetween) {
+                    OutlinedTextField(
+                        value = textState.value,
+                        onValueChange = { textState.value = it },
+                        label = { Text(text = stringResource(id = R.string.fronside)) },
+                        maxLines = 3,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = textState1.value,
+                        onValueChange = { textState1.value = it },
+                        label = { Text(text = stringResource(id = R.string.backside)) },
+                        maxLines = 3,
+                    )
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = {
+                            if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
+                                viewModel.popUpAdd()
+                                viewModel.addCard(
+                                    Card(
+                                        front = textState.value.text,
+                                        frontImg = "",
+                                        back = textState1.value.text,
+                                        backImg = "",
+                                        deckId = deck.id,
+                                        folderRoute = 0,
+                                        dueTo = LocalDate.now().toString()
+                                    )
+                                )
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    R.string.please_enter_a_name,
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
+                        }) {
+                        Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                    }
+                }
             }
-        }) {
-            Icon(imageVector = Icons.Default.Check, contentDescription = null)
         }
-    }, title = {
-        Text(text = stringResource(id = R.string.new_card))
-    }, text = {
-        Column {
-            TextField(
-                value = textState.value,
-                onValueChange = { textState.value = it },
-                label = { Text(text = stringResource(id = R.string.fronside)) },
-                maxLines = 3,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            TextField(
-                value = textState1.value,
-                onValueChange = { textState1.value = it },
-                label = { Text(text = stringResource(id = R.string.backside)) },
-                maxLines = 3,
-            )
-        }
-    })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -380,60 +449,77 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
     val textState = remember { mutableStateOf(TextFieldValue(card.front)) }
     val textState1 = remember { mutableStateOf(TextFieldValue(card.back)) }
     var resetDifficulty by remember { mutableStateOf(false) }
+    val configuration = LocalConfiguration.current
+    val height = (configuration.screenHeightDp.dp / 4) * 2
 
-    AlertDialog(onDismissRequest = {
+    Dialog(onDismissRequest = {
         viewModel.popUpEditCard()
-    }, confirmButton = {
-        Button(onClick = {
-            if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
-                val updateCard = Card(
-                    id = card.id,
-                    deckId = card.deckId,
-                    front = textState.value.text,
-                    back = textState1.value.text,
-                    folderRoute = 0,
-                    difficulty = if (!resetDifficulty) card.difficulty else 0,
-                    difficultyTimes = if (!resetDifficulty) card.difficultyTimes else 0,
-                    dueTo = if (!resetDifficulty) card.dueTo else LocalDate.now().toString()
+    }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text(
+                        text = stringResource(id = R.string.edit_card),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+                OutlinedTextField(
+                    value = textState.value,
+                    onValueChange = { textState.value = it },
+                    label = { Text(text = stringResource(id = R.string.fronside)) },
+                    maxLines = 4,
                 )
-                viewModel.updateCard(
-                    updateCard
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = textState1.value,
+                    onValueChange = { textState1.value = it },
+                    label = { Text(text = stringResource(id = R.string.backside)) },
+                    maxLines = 4,
                 )
-                viewModel.popUpEditCard()
-            } else {
-                Toast.makeText(
-                    context, R.string.please_enter_a_valid_text, Toast.LENGTH_SHORT
-                ).show()
-            }
-        }) {
-            Text(text = stringResource(id = R.string.update))
-        }
-    }, title = {
-        Text(text = stringResource(id = R.string.edit_card))
-    }, text = {
-        Column {
-            TextField(
-                value = textState.value,
-                onValueChange = { textState.value = it },
-                label = { Text(text = stringResource(id = R.string.fronside)) },
-                maxLines = 4,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            TextField(
-                value = textState1.value,
-                onValueChange = { textState1.value = it },
-                label = { Text(text = stringResource(id = R.string.backside)) },
-                maxLines = 4,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(text = stringResource(id = R.string.reset_difficulty))
-            Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
-            Log.d("file", "${File(card.backImg).exists()}")
-            if (File(card.backImg).exists()) {
-                val file = File(card.backImg).absolutePath
-                val myBitmap = BitmapFactory.decodeFile(file)
-                Image(bitmap = myBitmap.asImageBitmap(), contentDescription = null)
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically){
+                    Text(text = stringResource(id = R.string.reset_difficulty))
+                    Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
+                            val updateCard = Card(
+                                id = card.id,
+                                deckId = card.deckId,
+                                front = textState.value.text,
+                                back = textState1.value.text,
+                                folderRoute = 0,
+                                difficulty = if (!resetDifficulty) card.difficulty else 0,
+                                difficultyTimes = if (!resetDifficulty) card.difficultyTimes else 0,
+                                dueTo = if (!resetDifficulty) card.dueTo else LocalDate.now()
+                                    .toString()
+                            )
+                            viewModel.updateCard(
+                                updateCard
+                            )
+                            viewModel.popUpEditCard()
+                        } else {
+                            Toast.makeText(
+                                context, R.string.please_enter_a_valid_text, Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.update))
+                    }
+                }
             }
         }
-    })
+    }
 }

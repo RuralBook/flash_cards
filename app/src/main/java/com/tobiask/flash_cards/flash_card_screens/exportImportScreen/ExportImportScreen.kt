@@ -1,5 +1,6 @@
 package com.tobiask.flash_cards.flash_card_screens.exportImportScreen
 
+import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.R
+import java.security.Permission
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,7 +49,9 @@ fun ExportImportScreen(id: Int, dao: CardsDao, decksDAO: DecksDAO) {
     Scaffold {
         it
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { viewModel.export() }) {
+            Button(onClick = {
+
+            }) {
                 Icon(imageVector = Icons.Default.IosShare, contentDescription = stringResource(id = R.string.export))
                 Text(text = stringResource(id = R.string.export), fontSize = 25.sp)
             }

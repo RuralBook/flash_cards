@@ -57,16 +57,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.tobiask.flash_cards.PieChart
-import com.tobiask.flash_cards.QuizCards
+import com.tobiask.flash_cards.ui_elements.PieChart
 import com.tobiask.flash_cards.R
 import com.tobiask.flash_cards.database.CardsDao
-import com.tobiask.flash_cards.database.DecksDAO
-import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenuViewModel
-import com.tobiask.flash_cards.PieChartInput
+import com.tobiask.flash_cards.ui_elements.PieChartInput
 import com.tobiask.flash_cards.database.StatsDao
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.tobiask.flash_cards.ui_elements.CardFace
+import com.tobiask.flash_cards.ui_elements.FlipCard
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")

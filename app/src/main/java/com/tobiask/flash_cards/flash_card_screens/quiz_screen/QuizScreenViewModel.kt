@@ -1,15 +1,13 @@
 package com.tobiask.flash_cards.flash_card_screens.quiz_screen
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tobiask.flash_cards.QuizCards
+import com.tobiask.flash_cards.models.QuizCards
 import com.tobiask.flash_cards.database.Card
 import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Stats
 import com.tobiask.flash_cards.database.StatsDao
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch

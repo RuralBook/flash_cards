@@ -26,12 +26,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -44,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -53,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -69,12 +73,18 @@ import de.charlex.compose.RevealSwipe
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun FolderScreenMenu(dao: DecksDAO, daoFolder: FolderDao,cardsDao: CardsDao , id: Int, navController: NavController) {
+fun FolderScreenMenu(
+    dao: DecksDAO,
+    daoFolder: FolderDao,
+    cardsDao: CardsDao,
+    id: Int,
+    navController: NavController
+) {
     val context = LocalContext.current
     val viewModel =
         viewModel<FolderScreenMenuViewModel>(factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return FolderScreenMenuViewModel(dao, daoFolder, cardsDao , id) as T
+                return FolderScreenMenuViewModel(dao, daoFolder, cardsDao, id) as T
             }
         })
 
@@ -179,7 +189,8 @@ fun FolderScreenMenu(dao: DecksDAO, daoFolder: FolderDao,cardsDao: CardsDao , id
 fun DeckCardFolderScreen(
     deck: Deck, viewModel: FolderScreenMenuViewModel, context: Context, navController: NavController
 ) {
-    val cardsToLearn = viewModel.daoCards.getCardsDueTo(deck.id).collectAsState(initial = emptyList())
+    val cardsToLearn =
+        viewModel.daoCards.getCardsDueTo(deck.id).collectAsState(initial = emptyList())
     val counter = viewModel.getCardsToLearn(cardsToLearn.value)
 
     ElevatedCard(
@@ -235,61 +246,124 @@ fun DeckCardFolderScreen(
 @Composable
 fun EditFolder(viewModel: FolderScreenMenuViewModel, context: Context, folder: Folder) {
     val textState = remember { mutableStateOf(TextFieldValue(folder.name)) }
-    AlertDialog(onDismissRequest = {
+    val configuration = LocalConfiguration.current
+    val height = (configuration.screenHeightDp.dp / 4) * 1
+    Dialog(onDismissRequest = {
         viewModel.popUpEditFolder()
-    }, confirmButton = {
-        Button(onClick = {
-            if (textState.value.text.isNotEmpty()) {
-                viewModel.popUpEditFolder()
-                viewModel.updateFolder(
-                    Folder(
-                        id = folder.id,
-                        name = textState.value.text,
-                        parentFolder = folder.parentFolder
+    }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text(
+                        text = stringResource(id = R.string.edit_folder),
+                        style = MaterialTheme.typography.titleLarge
                     )
-                )
-            } else {
-                Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT).show()
+                }
+                OutlinedTextField(value = textState.value,
+                    onValueChange = { textState.value = it },
+                    label = { Text(text = stringResource(id = R.string.name_of_the_folder)) },
+                    maxLines = 2
+                    )
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Button(onClick = {
+                        if (textState.value.text.isNotEmpty()) {
+                            viewModel.popUpEditFolder()
+                            viewModel.updateFolder(
+                                Folder(
+                                    id = folder.id,
+                                    name = textState.value.text,
+                                    parentFolder = folder.parentFolder
+                                )
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                R.string.please_enter_a_name,
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.update))
+                    }
+                }
             }
-        }) {
-            Text(text = stringResource(id = R.string.update))
         }
-    }, title = {
-        Text(text = stringResource(id = R.string.edit_folder))
-    }, text = {
-        TextField(value = textState.value,
-            onValueChange = { textState.value = it },
-            label = { Text(text = stringResource(id = R.string.name_of_the_folder)) })
-    })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddDeck(viewModel: FolderScreenMenuViewModel, context: Context, folder: Folder) {
     val name = remember { mutableStateOf(TextFieldValue()) }
-    AlertDialog(onDismissRequest = {
+    val configuration = LocalConfiguration.current
+    val height = (configuration.screenHeightDp.dp / 4) * 1
+    Dialog(onDismissRequest = {
         viewModel.popUpAdd()
-    }, confirmButton = {
-        Button(onClick = {
-            if (name.value.text.isNotEmpty()) {
-                viewModel.popUpAdd()
-                viewModel.addDeck(Deck(name = name.value.text, parentFolder = folder.id))
+    }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text(
+                        text = stringResource(id = R.string.new_deck),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
 
+                OutlinedTextField(value = name.value,
+                    onValueChange = { name.value = it },
+                    label = { Text(text = stringResource(id = R.string.name_of_the_deck)) },
+                    maxLines = 2
+                )
 
-            } else {
-                Toast.makeText(context, R.string.please_enter_a_name, Toast.LENGTH_SHORT).show()
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Button(onClick = {
+                        if (name.value.text.isNotEmpty()) {
+                            viewModel.popUpAdd()
+                            viewModel.addDeck(
+                                Deck(
+                                    name = name.value.text,
+                                    parentFolder = folder.id
+                                )
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                R.string.please_enter_a_name,
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.add))
+                    }
+                }
             }
-        }) {
-            Text(text = stringResource(id = R.string.add))
         }
-    }, title = {
-        Text(text = stringResource(id = R.string.new_deck))
-
-    }, text = {
-        TextField(value = name.value,
-            onValueChange = { name.value = it },
-            label = { Text(text = stringResource(id = R.string.name_of_the_deck)) })
-    })
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

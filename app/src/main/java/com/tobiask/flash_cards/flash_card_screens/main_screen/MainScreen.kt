@@ -21,21 +21,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -59,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -153,7 +160,7 @@ fun MainScreen(
 
                     Text(
                         text = stringResource(id = R.string.welcome),
-                        fontSize = 39.sp,
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         softWrap = true
@@ -379,60 +386,121 @@ fun FolderCard(folder: Folder, navController: NavController) {
 fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
     val name = remember { mutableStateOf(TextFieldValue()) }
     var isDeck by remember { mutableStateOf(true) }
-    AlertDialog(
+    var addDeck by remember {
+        mutableStateOf(false)
+    }
+    var addFolder by remember {
+        mutableStateOf(false)
+    }
+    val configuration = LocalConfiguration.current
+    val height = (configuration.screenHeightDp.dp / 4) * 1
+    Dialog(
         onDismissRequest = {
             viewModel.popUp()
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.value.text.isNotEmpty()) {
-                        if (isDeck) {
-                            viewModel.popUp()
-                            viewModel.addDeck(Deck(name = name.value.text))
-                        } else {
-                            viewModel.popUp()
-                            viewModel.addFolder(
-                                Folder(
-                                    name = name.value.text,
-                                    parentFolder = 0
-                                )
-                            )
-                        }
-                    } else {
-                        Toast.makeText(
-                            context,
-                            R.string.please_enter_a_name,
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    }
-                }) {
-                Text(text = stringResource(id = R.string.add))
-            }
-        },
-        title = {
-            TextButton(onClick = { isDeck = !isDeck }) {
-                Text(
-                    text = if (isDeck) stringResource(id = R.string.new_deck) else stringResource(
-                        id = R.string.new_folder
-                    ), fontSize = 20.sp
-                )
-            }
-        },
-        text = {
-            TextField(
-                value = name.value,
-                onValueChange = { name.value = it },
-                label = {
+        }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row (Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start){
                     Text(
-                        text = if (isDeck)
-                            stringResource(id = R.string.name_of_the_deck) else stringResource(
-                            id = R.string.name_of_the_folder
-                        )
+                        text =stringResource(id = R.string.new_str)
+                        , fontSize = 20.sp,
+                        style = MaterialTheme.typography.titleLarge
                     )
                 }
-            )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly){
+                    FilterChip(
+                        selected = addDeck,
+                        onClick = { addDeck = !addDeck; addFolder = false },
+                        label = { Text(text = "Deck") },
+                        leadingIcon = if (addDeck) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = "Done icon",
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                    FilterChip(
+                        selected = addFolder,
+                        onClick = { addFolder = !addFolder; addDeck = false },
+                        label = { Text(text = "Folder") },
+                        leadingIcon = if (addFolder) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = "Done icon",
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+
+                }
+
+
+                OutlinedTextField(
+                    value = name.value,
+                    onValueChange = { name.value = it },
+                    label = {
+                        Text(
+                            text = if (addDeck)
+                                stringResource(id = R.string.name_of_the_deck) else if (addFolder) stringResource(
+                                id = R.string.name_of_the_folder
+                            ) else "pls select a Type"
+                        )
+                    }
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = {
+                            if (name.value.text.isNotEmpty()) {
+                                if (addDeck) {
+                                    viewModel.popUp()
+                                    viewModel.addDeck(Deck(name = name.value.text))
+                                } else if(addFolder){
+                                    viewModel.popUp()
+                                    viewModel.addFolder(
+                                        Folder(
+                                            name = name.value.text,
+                                            parentFolder = 0
+                                        )
+                                    )
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "pls select a Type",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    R.string.please_enter_a_name,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }) {
+                        Text(text = stringResource(id = R.string.add))
+                    }
+                }
+            }
         }
-    )
+    }
 }
