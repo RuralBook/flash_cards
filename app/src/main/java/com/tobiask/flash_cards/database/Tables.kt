@@ -29,9 +29,13 @@ data class Card(
 
     val front: String,
     val frontImg: String = "",
+    val frontAudio: String = "",
+    val otherFrontMedia: String = "",
 
     val back: String,
     val backImg: String = "",
+    val backAudio: String = "",
+    val otherBackMedia: String = "",
 
     val dueTo: String,
 

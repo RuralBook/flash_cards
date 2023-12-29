@@ -3,6 +3,7 @@ package com.tobiask.flash_cards
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -45,7 +46,7 @@ class MainActivity : ComponentActivity() {
     private val request =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val isGranted = permissions.values.reduce { acc, b -> acc && b }
-            if (!isGranted) {
+            if (!isGranted && Build.VERSION.SDK_INT < Build.VERSION_CODES.S_V2) {
                 runBlocking {
                     Toast.makeText(this@MainActivity, "In Order To Let this app Work those Permissions are nessesary", Toast.LENGTH_LONG).show()
                     finish()
@@ -64,7 +65,9 @@ class MainActivity : ComponentActivity() {
                         context = context,
                         FlashCardsDatabase::class.java,
                         "FlashCards.db"
-                    ).fallbackToDestructiveMigration().build()
+                    )
+                        .fallbackToDestructiveMigration()
+                        .build()
                 }
                 Surface(
                     modifier = Modifier.fillMaxSize(),

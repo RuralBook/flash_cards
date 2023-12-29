@@ -223,7 +223,7 @@ fun QuizScreen(
                                                     if (card.frontSideImg != "") {
                                                         Spacer(modifier = Modifier.height(20.dp))
                                                         Button(onClick = { viewModel.showFrontImg() }) {
-                                                            Text(text = "Show Image")
+                                                            Text(text = stringResource(id = R.string.show_image))
                                                         }
                                                     }
                                                 }
@@ -258,7 +258,7 @@ fun QuizScreen(
                                                         if (card.backSideImg != "") {
                                                             Spacer(modifier = Modifier.height(20.dp))
                                                             Button(onClick = { viewModel.showBackImg() }) {
-                                                                Text(text = "Show Image")
+                                                                Text(text = stringResource(id = R.string.show_image))
                                                             }
                                                         }
                                                     }
@@ -410,7 +410,7 @@ fun AnalyseScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Results") })
+            TopAppBar(title = { Text(text = stringResource(id = R.string.results)) })
         }
     ) {
         it
@@ -427,22 +427,22 @@ fun AnalyseScreen(
                     PieChartInput(
                         color = Color.Green,
                         value = known,
-                        description = "einfach"
+                        description = stringResource(id = R.string.difficulty_easy)
+                    ),
+                    PieChartInput(
+                        color = Color.Yellow,
+                        value = ok_known,
+                        description = stringResource(id = R.string.difficulty_well)
                     ),
                     PieChartInput(
                         color = Color(0xffffa500),
-                        value = ok_known,
-                        description = "gut"
-                    ),
-                    PieChartInput(
-                        color = Color.Red,
                         value = difficult,
-                        description = "schwer"
+                        description = stringResource(id = R.string.difficulty_difficult)
                     ),
                     PieChartInput(
                         color = Color.Red,
                         value = unknown,
-                        description = "unbekannt"
+                        description = stringResource(id = R.string.difficulty_again)
                     )
                 )
             )
@@ -456,7 +456,7 @@ fun AnalyseScreen(
                         .background(Color.Green)
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "einfach gewusst -> $known")
+                Text(text = stringResource(id = R.string.easy_cards) + " $known")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -468,7 +468,7 @@ fun AnalyseScreen(
                         .background(Color(0xffffa500))
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "gut gekonnt -> $ok_known")
+                Text(text = stringResource(id = R.string.well_cards) + " $ok_known")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -480,7 +480,7 @@ fun AnalyseScreen(
                         .background(Color.Red)
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "shwer gewusst -> $difficult")
+                Text(text = stringResource(id = R.string.difficult_cards) +" $difficult")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -492,13 +492,13 @@ fun AnalyseScreen(
                         .background(Color.Red)
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "gar nicht gewusst -> $unknown")
+                Text(text = stringResource(id = R.string.unknown_cards) + " $unknown")
             }
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = {
                 navController.popBackStack()
             }) {
-                Text(text = "Next")
+                Text(text = stringResource(id = R.string.next))
             }
         }
     }
@@ -512,9 +512,9 @@ fun ShowImage(viewModel: QuizScreenViewModel, filename: String, front: Boolean) 
             val image =
                 viewModel.loadBitmapFromInternalStorage(context, filename)
             if (image != null) {
-                Image(bitmap = image!!.asImageBitmap(), contentDescription = null)
+                Image(bitmap = image.asImageBitmap(), contentDescription = null)
             } else {
-                Text(text = "No Image")
+                Text(text = stringResource(id = R.string.image_not_found))
             }
         }
     }

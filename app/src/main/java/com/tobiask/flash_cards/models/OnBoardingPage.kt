@@ -6,22 +6,23 @@ import com.tobiask.flash_cards.R
 sealed class OnBoardingPage(
     @DrawableRes
     val image: Int,
-    val title: String,
-    val description: String
-) {
+    val title: Int,
+    val description: Int
+)
+{
     object First: OnBoardingPage(
         image = R.drawable.ic_launcher_round,
-        title = "Welcome!",
-        description = "This app should help you to learn everything you ever wanted to learn!"
+        title = R.string.intro_title_01,
+        description = R.string.intro_content_01
     )
     object Second: OnBoardingPage(
         image = R.drawable.folder_icon_round,
-        title = "How Does this App Work?",
-        description = """To get a better Structure you can add Decks to the "root" folder or create Folders where you can insert different decks"""
+        title = R.string.intro_title_02,
+        description = R.string.intro_content_02
     )
     object Third: OnBoardingPage(
         image = R.drawable.lightbulb_icon_round,
-        title = "How to learn",
-        description = "You can learn by using the provided spaced algorithm or using the training mode. Just try them out. \n Have fun and best regards, RuralBook"
+        title = R.string.intro_title_03,
+        description = R.string.intro_content_03
     )
 }

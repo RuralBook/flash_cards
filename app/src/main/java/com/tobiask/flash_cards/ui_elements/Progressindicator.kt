@@ -4,7 +4,7 @@ import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -31,7 +31,7 @@ fun CircularProgressBar(
     backgroundColor: Color,
     strokeWidth: Dp
 ) {
-    val textColor = MaterialTheme.colors.onBackground.toArgb()
+    val textColor = MaterialTheme.colorScheme.onBackground.toArgb()
     val percentage = (value.toFloat()/maxValue)
     Canvas(
         modifier = modifier

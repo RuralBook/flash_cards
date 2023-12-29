@@ -107,7 +107,8 @@ class ExportImportScreenViewModel(
         }
     }
 
-    private fun isJsonFile(uri: Uri): Boolean {
+
+    private fun isJsonFile(uri: Uri): Boolean { //TODO(V.1.3.5): rewrite / make it work
         val fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
 
         // Check if the file extension corresponds to JSON
@@ -116,42 +117,47 @@ class ExportImportScreenViewModel(
     }
 
     private fun readJsonFile(context: Context, uri: Uri): String {
-        val contentResolver: ContentResolver = context.contentResolver
-        val inputStream = contentResolver.openInputStream(uri)
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        val stringBuilder = StringBuilder()
-        var line: String? = reader.readLine()
-        while (line != null) {
-            stringBuilder.append(line).append("\n")
-            line = reader.readLine()
-        }
 
-        // Close
-        reader.close()
-        inputStream?.close()
 
-        // convert to JsonObject
-        val jsonData = stringBuilder.toString()
-        val jsonObject = JSONObject(jsonData)
-
-        val cards = jsonObject.getJSONArray("Cards")
-        try {
-            for (i in 0 until cards.length()) {
-                val card = Card(
-                    front = cards.getJSONObject(i).getString("front"),
-                    back = cards.getJSONObject(i).getString("back"),
-                    deckId = id,
-                    dueTo = LocalDate.now().toString()
-                )
-                //_cardsToImport.value.plus(card)
-                viewModelScope.launch {
-                    dao.addCard(card)
-                }
+            val contentResolver: ContentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(uri)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val stringBuilder = StringBuilder()
+            var line: String? = reader.readLine()
+            while (line != null) {
+                stringBuilder.append(line).append("\n")
+                line = reader.readLine()
             }
-        } catch (e: JSONException) {
-            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
-        }
 
-        return stringBuilder.toString()
+            reader.close()
+            inputStream?.close()
+
+            // convert to JsonObject
+            val jsonData = stringBuilder.toString()
+        try {
+            val jsonObject = JSONObject(jsonData)
+
+            val cards = jsonObject.getJSONArray("Cards")
+            try {
+                for (i in 0 until cards.length()) {
+                    val card = Card(
+                        front = cards.getJSONObject(i).getString("front"),
+                        back = cards.getJSONObject(i).getString("back"),
+                        deckId = id,
+                        dueTo = LocalDate.now().toString()
+                    )
+                    //_cardsToImport.value.plus(card)
+                    viewModelScope.launch {
+                        dao.addCard(card)
+                    }
+                }
+            } catch (e: JSONException) {
+                Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
+            }
+
+            return stringBuilder.toString()
+        } catch (e: JSONException){
+            return ""
+        }
     }
 }

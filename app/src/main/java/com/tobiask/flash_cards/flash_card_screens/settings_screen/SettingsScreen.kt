@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -21,8 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -54,25 +57,28 @@ fun SettingsScreen(cardsDao: CardsDao, decksDAO: DecksDAO, folderDao: FolderDao)
         topBar = {
             TopAppBar(title = {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
-                Text(text = "Settings")
+                Text(text = stringResource(id = R.string.settings), style = MaterialTheme.typography.headlineLarge)
             }})
         }
     ){it
         Column(
             Modifier
                 .padding(it)
-                .fillMaxSize()){
-            Button(onClick = { /*TODO*/ }) {
-                Text(text = "HELP")
-            }
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
             Button(onClick = { viewModel.exportDatabase() }) {
-                Text(text = "Backup")
+                Text(text = stringResource(id = R.string.backup))
             }
             Button(onClick = { launcher.launch("*/*") }) {
-                Text(text = "import")
+                Text(text = stringResource(id = R.string.import_str))
             }
-            Text(text = "NOTE:")
-            Text(text = "You can only import a Full-Export to an clean app with no Data!")
+            Column {
+                Text(text = stringResource(id = R.string.important_note))
+                Text(text = stringResource(id = R.string.full_export_note))
+            }
+            Text(text = stringResource(id = R.string.report_bug_note))
         }
     }
 }

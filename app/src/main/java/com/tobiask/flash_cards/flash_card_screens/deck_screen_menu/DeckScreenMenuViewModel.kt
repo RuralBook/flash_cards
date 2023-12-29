@@ -24,6 +24,9 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
     ViewModel() {
 
 
+
+
+
     val DeckCards = daoCards.getCards(deckId)
 
 
@@ -134,5 +137,19 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
     fun deleteImageFromInternalStorage(context: Context, filename: String): Boolean {
         val file = File(context.filesDir, filename)
         return file.delete()
+    }
+
+    private var _isFrontImgDisplayed = MutableStateFlow(false)
+    val isFrontImgDisplayed = _isFrontImgDisplayed.asStateFlow()
+
+    private var _isBackImgDisplayed = MutableStateFlow(false)
+    val isBackImgDisplayed = _isBackImgDisplayed.asStateFlow()
+
+    fun showFrontImg(){
+        _isFrontImgDisplayed.value = !_isFrontImgDisplayed.value
+    }
+
+    fun showBackImg(){
+        _isBackImgDisplayed.value = !_isBackImgDisplayed.value
     }
 }

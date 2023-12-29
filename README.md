@@ -11,7 +11,7 @@ basic material3 flash card app
 
   ### V1.3.5/1.4.0
   - Pop-Up Notification
-  - (maybe adding multiple image Support) 
+  - Adding Audio Support
 
 ## known issues(fixes available in v1.3):
 - [x] ~~wrong text if u want to add a Folder~~
@@ -19,3 +19,4 @@ basic material3 flash card app
 
 ## Tutorial:
 // gerade kein bock so viel zu schreiben...
+// immernoch keine Lust

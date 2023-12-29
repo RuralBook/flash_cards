@@ -35,6 +35,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
@@ -78,6 +79,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat.getString
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -89,6 +91,7 @@ import com.tobiask.flash_cards.database.CardsDao
 import com.tobiask.flash_cards.database.Deck
 import com.tobiask.flash_cards.database.DecksDAO
 import com.tobiask.flash_cards.database.StatsDao
+import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreenViewModel
 import com.tobiask.flash_cards.navigation.Screen
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
@@ -128,7 +131,7 @@ fun DeckScreenMenu(
 
     val popUpAdd by viewModel.showPopUpAdd.collectAsState()
     if (popUpAdd) {
-        AddCard(viewModel = viewModel, context = context, deck = deck.value)
+        AddCard(viewModel = viewModel, deck = deck.value)
     }
 
     Scaffold(topBar = {
@@ -163,7 +166,11 @@ fun DeckScreenMenu(
                         val routeWithArgs = "${Screen.QuizScreen.route}?id=${ids}"
                         navController.navigate(routeWithArgs)
                     } else {
-                        Toast.makeText(context, "Nothing to learn!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            getString(context, R.string.nothing_to_learn),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }) {
                     Icon(
@@ -254,6 +261,25 @@ fun DeckScreenMenu(
 @Composable
 fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: Context) {
 
+    val showFrontImage = viewModel.isFrontImgDisplayed.collectAsState().value
+    val showBackImage = viewModel.isBackImgDisplayed.collectAsState().value
+
+    if (showFrontImage) {
+        ShowImage(
+            viewModel = viewModel,
+            filename = card.frontImg,
+            front = true
+        )
+    }
+
+    if (showBackImage) {
+        ShowImage(
+            viewModel = viewModel,
+            filename = card.backImg,
+            front = false
+        )
+    }
+
     val popUpEditCard by viewModel.showPopUpEditCard.collectAsState()
 
     if (popUpEditCard) {
@@ -291,14 +317,29 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row {
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
-                        Text(
-                            modifier = Modifier.padding(start = 20.dp, top = 20.dp),
-                            text = if (front) card.front else card.back,
-                            fontSize = 25.sp,
-                            fontStyle = if (front) FontStyle.Normal else FontStyle.Italic
-                        )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text(
+                        modifier = Modifier.padding(start = 20.dp, top = 20.dp),
+                        text = if (front) card.front else card.back,
+                        fontSize = 25.sp,
+                        fontStyle = if (front) FontStyle.Normal else FontStyle.Italic
+                    )
+                }
+                if (front) {
+                    if (card.frontImg != "") {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            IconButton(onClick = { viewModel.showFrontImg() }) {
+                                Icon(imageVector = Icons.Default.Image, contentDescription = null)
+                            }
+                        }
+                    }
+                } else {
+                    if (card.backImg != "") {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            IconButton(onClick = { viewModel.showBackImg() }) {
+                                Icon(imageVector = Icons.Default.Image, contentDescription = null)
+                            }
+                        }
                     }
                 }
             }
@@ -331,7 +372,8 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-                    Text(text = stringResource(id = R.string.edit_deck),
+                    Text(
+                        text = stringResource(id = R.string.edit_deck),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -373,7 +415,7 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
+fun AddCard(viewModel: DeckScreenMenuViewModel, deck: Deck) {
     var isAddingFront by remember {
         mutableStateOf(true)
     }
@@ -381,32 +423,38 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
     val textState1 = remember { mutableStateOf(TextFieldValue()) }
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val height = (configuration.screenHeightDp.dp / 3) * 1 // 4 = 5??
+    val height = (configuration.screenHeightDp.dp / 5) * 2 // 4 = 5?? TODO (V1.3.5): Improve space
     var frontImage: String by remember {
         mutableStateOf("")
     }
-    val frontImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    val frontImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+        if (uri != null) {
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
             val text = viewModel.getRandomString(16)
             viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
 
-            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
+            if (viewModel.loadBitmapFromInternalStorage(context, text) != null) {
                 frontImage = text
             }
+        }
     }
     var backImage: String by remember {
         mutableStateOf("")
     }
-    val backImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    val backImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+        if (uri != null) {
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
             val text = viewModel.getRandomString(16)
             viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
 
-            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
+            if (viewModel.loadBitmapFromInternalStorage(context, text) != null) {
                 backImage = text
             }
+        }
     }
 
     Dialog(onDismissRequest = {
@@ -451,13 +499,12 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                             }) {
                                 Icon(
                                     imageVector = if (frontImage == "") Icons.Default.Image else Icons.Default.Check,
-                                    contentDescription = "add Image"
+                                    contentDescription = null
                                 )
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Column(verticalArrangement = Arrangement.SpaceBetween) {
                         OutlinedTextField(
                             value = textState1.value,
@@ -469,55 +516,63 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                         Row {
                             IconButton(
                                 onClick = {
-                                backImageLauncher.launch(
-                                    PickVisualMediaRequest(
-                                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    backImageLauncher.launch(
+                                        PickVisualMediaRequest(
+                                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                        )
                                     )
-                                )
-                            }) {
+                                }) {
                                 Icon(
                                     imageVector = if (backImage == "") Icons.Default.Image else Icons.Default.Check,
-                                    contentDescription = "add Image"
+                                    contentDescription = null
                                 )
                             }
                         }
                     }
                 }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        if (!isAddingFront){
-                            IconButton(onClick = { isAddingFront = true }) {
-                                Icon(imageVector = Icons.Default.ArrowBack, contentDescription =null )
-                            }
-                        }
-                        Button(
-                            onClick = {
-                                if (isAddingFront){
-                                    isAddingFront = false
-                                } else if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
-                                    viewModel.popUpAdd()
-                                    viewModel.addCard(
-                                        Card(
-                                            front = textState.value.text,
-                                            frontImg = frontImage,
-                                            back = textState1.value.text,
-                                            backImg = backImage,
-                                            deckId = deck.id,
-                                            folderRoute = 0,
-                                            dueTo = LocalDate.now().toString()
-                                        )
-                                    )
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        R.string.please_enter_a_name,
-                                        Toast.LENGTH_SHORT
-                                    )
-                                        .show()
-                                }
-                            }) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    if (!isAddingFront) {
+                        IconButton(onClick = { isAddingFront = true }) {
+                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
                         }
                     }
+                    Button(
+                        onClick = {
+                            if (isAddingFront) {
+                                isAddingFront = false
+                            } else if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
+                                viewModel.popUpAdd()
+                                viewModel.addCard(
+                                    Card(
+                                        front = textState.value.text,
+                                        frontImg = frontImage,
+                                        back = textState1.value.text,
+                                        backImg = backImage,
+                                        deckId = deck.id,
+                                        folderRoute = 0,
+                                        dueTo = LocalDate.now().toString()
+                                    )
+                                )
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    R.string.please_enter_a_name,
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
+                        }) {
+                        Icon(
+                            imageVector = if (isAddingFront) {
+                                Icons.Default.ArrowForward
+                            } else {
+                                Icons.Default.Check
+                            },
+                            contentDescription = null
+                        )
+
+                    }
+                }
             }
         }
     }
@@ -534,35 +589,41 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
     val textState1 = remember { mutableStateOf(TextFieldValue(card.back)) }
     var resetDifficulty by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
-    val height = (configuration.screenHeightDp.dp / 3) * 1
+    val height = (configuration.screenHeightDp.dp / 5) * 2 // TODO (V1.3.5): Improve space
 
     var frontImage: String by remember {
         mutableStateOf(card.frontImg)
     }
-    val frontImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    val frontImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
-        if (textState.value.text.isNotBlank()) {
-            val text = viewModel.getRandomString(16)
-            viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
+        if (uri != null) {
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+            if (textState.value.text.isNotBlank()) {
+                val text = viewModel.getRandomString(16)
+                viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
 
-            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
-                frontImage = text
+                if (viewModel.loadBitmapFromInternalStorage(context, text) != null) {
+                    frontImage = text
+                }
             }
         }
     }
     var backImage: String by remember {
         mutableStateOf(card.backImg)
     }
-    val backImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    val backImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
-        if (textState1.value.text.isNotBlank()) {
-            val text = viewModel.getRandomString(16)
-            viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
+        if (uri != null) {
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+            if (textState1.value.text.isNotBlank()) {
+                val text = viewModel.getRandomString(16)
+                viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
 
-            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
-                backImage = text
+                if (viewModel.loadBitmapFromInternalStorage(context, text) != null) {
+                    backImage = text
+                }
             }
         }
     }
@@ -583,12 +644,11 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     Text(
                         text = stringResource(id = R.string.edit_card),
                         style = MaterialTheme.typography.titleLarge
                     )
-                    Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it})
                 }
                 if (isAddingFront) {
                     Column(verticalArrangement = Arrangement.SpaceBetween) {
@@ -609,7 +669,7 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                             }) {
                                 Icon(
                                     imageVector = if (frontImage == "") Icons.Default.Image else Icons.Default.Check,
-                                    contentDescription = "add Image"
+                                    contentDescription = null
                                 )
                             }
                             if (frontImage != "") {
@@ -617,13 +677,12 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                                     viewModel.deleteImageFromInternalStorage(context, frontImage)
                                     frontImage = ""
                                 }) {
-                                    Text(text = "DELETE IMAGE")
+                                    Text(text = stringResource(id = R.string.delete_image))
                                 }
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Column(verticalArrangement = Arrangement.SpaceBetween) {
                         OutlinedTextField(
                             value = textState1.value,
@@ -643,7 +702,7 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                                 }) {
                                 Icon(
                                     imageVector = if (backImage == "") Icons.Default.Image else Icons.Default.Check,
-                                    contentDescription = "add Image"
+                                    contentDescription = null
                                 )
                             }
                             if (backImage != "") {
@@ -651,20 +710,24 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                                     viewModel.deleteImageFromInternalStorage(context, backImage)
                                     backImage = ""
                                 }) {
-                                    Text(text = "DELETE IMAGE")
+                                    Text(text = stringResource(id = R.string.delete_image))
                                 }
                             }
                         }
                     }
                 }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly){
+                    Text(text = stringResource(id = R.string.reset_difficulty))
+                    Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
+                }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    if (!isAddingFront){
+                    if (!isAddingFront) {
                         IconButton(onClick = { isAddingFront = true }) {
-                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription =null )
+                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
                         }
                     }
                     Button(onClick = {
-                        if (isAddingFront){
+                        if (isAddingFront) {
                             isAddingFront = false
                         } else if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
                             val updateCard = Card(
@@ -690,9 +753,29 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                             ).show()
                         }
                     }) {
-                        Text(text = stringResource(id = R.string.update))
+                        if (isAddingFront) {
+                            Text(text = stringResource(id = R.string.next))
+                        } else {
+                            Text(text = stringResource(id = R.string.update))
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShowImage(viewModel: DeckScreenMenuViewModel, filename: String, front: Boolean) {
+    val context = LocalContext.current
+    Dialog(onDismissRequest = { if (front) viewModel.showFrontImg() else viewModel.showBackImg() }) {
+        Card() {
+            val image =
+                viewModel.loadBitmapFromInternalStorage(context, filename)
+            if (image != null) {
+                Image(bitmap = image.asImageBitmap(), contentDescription = null)
+            } else {
+                Text(text = stringResource(id = R.string.image_not_found))
             }
         }
     }

@@ -215,7 +215,7 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                                                     if (card.frontSideImg != "") {
                                                         Spacer(modifier = Modifier.height(20.dp))
                                                         Button(onClick = { viewModel.showFrontImg() }) {
-                                                            Text(text = "Show Image")
+                                                            Text(text = stringResource(id = R.string.show_image))
                                                         }
                                                     }
                                                 }
@@ -248,7 +248,7 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                                                         if (card.backSideImg != "") {
                                                             Spacer(modifier = Modifier.height(20.dp))
                                                             Button(onClick = { viewModel.showBackImg() }) {
-                                                                Text(text = "Show Image")
+                                                                Text(text = stringResource(id = R.string.show_image))
                                                             }
                                                         }
                                                     }

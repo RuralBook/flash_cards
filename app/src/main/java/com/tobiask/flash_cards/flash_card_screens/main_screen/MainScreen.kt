@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -154,7 +155,7 @@ fun MainScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.BarChart,
-                            contentDescription = "statistics"
+                            contentDescription = null
                         )
                     }
 
@@ -177,7 +178,7 @@ fun MainScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "settings"
+                            contentDescription = null
                         )
                     }
                 }
@@ -394,7 +395,7 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
         mutableStateOf(false)
     }
     val configuration = LocalConfiguration.current
-    val height = (configuration.screenHeightDp.dp / 4) * 1
+    val height = (configuration.screenHeightDp.dp / 6) * 2
     Dialog(
         onDismissRequest = {
             viewModel.popUp()
@@ -423,12 +424,12 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                     FilterChip(
                         selected = addDeck,
                         onClick = { addDeck = !addDeck; addFolder = false },
-                        label = { Text(text = "Deck") },
+                        label = { Text(text = stringResource(id = R.string.deck)) },
                         leadingIcon = if (addDeck) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Done,
-                                    contentDescription = "Done icon",
+                                    contentDescription = null,
                                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                                 )
                             }
@@ -439,12 +440,12 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                     FilterChip(
                         selected = addFolder,
                         onClick = { addFolder = !addFolder; addDeck = false },
-                        label = { Text(text = "Folder") },
+                        label = { Text(text = stringResource(id = R.string.folder)) },
                         leadingIcon = if (addFolder) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Done,
-                                    contentDescription = "Done icon",
+                                    contentDescription = null,
                                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                                 )
                             }
@@ -464,7 +465,7 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                             text = if (addDeck)
                                 stringResource(id = R.string.name_of_the_deck) else if (addFolder) stringResource(
                                 id = R.string.name_of_the_folder
-                            ) else "pls select a Type"
+                            ) else stringResource(id = R.string.please_choose_a_type)
                         )
                     }
                 )
@@ -486,7 +487,7 @@ fun AddDeck(viewModel: MainScreenViewModel, context: Context) {
                                 } else {
                                     Toast.makeText(
                                         context,
-                                        "pls select a Type",
+                                        getString(context, R.string.please_choose_a_type),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }

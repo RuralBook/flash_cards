@@ -50,14 +50,14 @@ fun ExportImportScreen(id: Int, dao: CardsDao, decksDAO: DecksDAO) {
         it
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = {
-
+                viewModel.export()
             }) {
                 Icon(imageVector = Icons.Default.IosShare, contentDescription = stringResource(id = R.string.export))
                 Text(text = stringResource(id = R.string.export), fontSize = 25.sp)
             }
             Button(onClick = { launcher.launch("*/*") }) {
-                Icon(imageVector = Icons.Default.SaveAlt, contentDescription = stringResource(id = R.string.import_string))
-                Text(text = stringResource(id = R.string.import_string),  fontSize = 25.sp)
+                Icon(imageVector = Icons.Default.SaveAlt, contentDescription = stringResource(id = R.string.import_str))
+                Text(text = stringResource(id = R.string.import_str),  fontSize = 25.sp)
             }
         }
     }
