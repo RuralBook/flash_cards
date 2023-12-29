@@ -1,5 +1,8 @@
 package com.tobiask.flash_cards.flash_card_screens.quiz_screen
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,11 +15,38 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.time.LocalDate
 
-class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckId: Int) : ViewModel() {
+class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao, val deckId: Int) :
+    ViewModel() {
 
-//STATS:
+    //IMAGES:
+//__________________________________________________________________________________________________
+    fun loadBitmapFromInternalStorage(context: Context, filename: String): Bitmap? {
+        val file = File(context.filesDir, filename)
+        return if (file.exists()) {
+            BitmapFactory.decodeFile(file.path)
+        } else {
+            null
+        }
+    }
+
+    private var _isFrontImgDisplayed = MutableStateFlow(false)
+    val isFrontImgDisplayed = _isFrontImgDisplayed.asStateFlow()
+
+    private var _isBackImgDisplayed = MutableStateFlow(false)
+    val isBackImgDisplayed = _isBackImgDisplayed.asStateFlow()
+
+    fun showFrontImg(){
+        _isFrontImgDisplayed.value = !_isFrontImgDisplayed.value
+    }
+
+    fun showBackImg(){
+        _isBackImgDisplayed.value = !_isBackImgDisplayed.value
+    }
+
+    //STATS:
 //__________________________________________________________________________________________________
     private var _known = MutableStateFlow(0)
     val known = _known.asStateFlow()
@@ -27,18 +57,33 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
     private var _ok_known = MutableStateFlow(0)
     val ok_known = _ok_known.asStateFlow()
 
-    fun addKnown(){ _known.value++}
+    private var _isUpdated = MutableStateFlow(false)
+    val isUpdated = _isUpdated.asStateFlow()
+
+    fun updated(){
+        _isUpdated.value = !_isUpdated.value
+    }
+
+    fun addKnown() {
+        _known.value++
+    }
 
 
-    fun addUnKnown() { _unknown.value++ }
+    fun addUnKnown() {
+        _unknown.value++
+    }
 
-    fun addDifficult() { _difficult.value++ }
+    fun addDifficult() {
+        _difficult.value++
+    }
 
-    fun addOkKnown() { _ok_known.value++ }
+    fun addOkKnown() {
+        _ok_known.value++
+    }
 
-    fun updateStats(cards: Int){
+    fun updateStats(cards: Int) {
         var stats = emptyList<Stats>()
-        viewModelScope.launch{
+        viewModelScope.launch {
             runBlocking {
                 stats = statsDao.getStatsStatic()
             }
@@ -46,13 +91,14 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
         val lastLeaned = LocalDate.parse(stats[0].lastLearned)
         val today = LocalDate.now()
         val learnedCounter = stats[0].learnedCounter + 1
-        val streak = if (today.minusDays(1) == lastLeaned) stats[0].streak + 1 else if (today == lastLeaned) stats[0].streak else 0
+        val streak =
+            if (today.minusDays(1) == lastLeaned) stats[0].streak + 1 else if (today == lastLeaned) stats[0].streak else 0
         viewModelScope.launch {
             Log.d("info", "$today, $lastLeaned, $learnedCounter, $streak")
             statsDao.updateStats(
                 Stats(
                     id = stats[0].id,
-                    learnedCounter = learnedCounter ,
+                    learnedCounter = learnedCounter,
                     streak = streak,
                     lastLearned = LocalDate.now().toString(),
                     learnedCardsCounter = stats[0].learnedCardsCounter + cards,
@@ -63,16 +109,18 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
         }
     }
 
-//CARDS:
+    //CARDS:
 //__________________________________________________________________________________________________
     var cards = converter()
+
+    var trainingCards = trainingConverter()
 
     var _isFetched = false
     private fun converter(): MutableList<QuizCards> {
         var cards = mutableListOf<Card>()
         viewModelScope.launch {
             runBlocking {
-               cards = dao.getCardsList(deckId).toMutableList()
+                cards = dao.getCardsList(deckId).toMutableList()
             }
         }
         val quizCards = mutableListOf<QuizCards>()
@@ -83,15 +131,40 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                 val buffer = QuizCards(
                     id = card.id,
                     frontSide = card.front,
-                    frontSideImg = null,
+                    frontSideImg = card.frontImg,
                     backSide = card.back,
-                    backSideImg = null,
+                    backSideImg = card.backImg,
                     oldDifficulty = card.difficulty,
                     difficulty = card.difficulty,
                     difficultyTimes = card.difficultyTimes
                 )
                 quizCards.add(buffer)
             }
+            _isFetched = true
+        }
+        return quizCards.shuffled().toMutableList()
+    }
+
+    private fun trainingConverter(): MutableList<QuizCards> {
+        var cards = mutableListOf<Card>()
+        viewModelScope.launch {
+            runBlocking {
+                cards = dao.getCardsList(deckId).toMutableList()
+            }
+        }
+        val quizCards = mutableListOf<QuizCards>()
+        for (card in cards) {
+                val buffer = QuizCards(
+                    id = card.id,
+                    frontSide = card.front,
+                    frontSideImg = card.frontImg,
+                    backSide = card.back,
+                    backSideImg = card.backImg,
+                    oldDifficulty = card.difficulty,
+                    difficulty = card.difficulty,
+                    difficultyTimes = card.difficultyTimes
+                )
+                quizCards.add(buffer)
             _isFetched = true
         }
         return quizCards.shuffled().toMutableList()
@@ -118,10 +191,13 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                         id = card.id,
                         deckId = deckId,
                         front = card.frontSide,
+                        frontImg = card.frontSideImg,
                         back = card.backSide,
+                        backImg = card.backSideImg,
                         difficulty = card.difficulty,
                         difficultyTimes = card.difficultyTimes,
-                        dueTo = LocalDate.now().plusDays(if (card.difficulty == 0) 0 else 1).toString()
+                        dueTo = LocalDate.now().plusDays(if (card.difficulty == 0) 0 else 1)
+                            .toString()
                     )
                 )
             }
@@ -139,7 +215,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                     id = card.id,
                     deckId = deckId,
                     front = card.frontSide,
+                    frontImg = card.frontSideImg,
                     back = card.backSide,
+                    backImg = card.backSideImg,
                     difficulty = card.difficulty,
                     difficultyTimes = card.difficultyTimes,
                     dueTo = LocalDate.now().plusDays(1).toString()
@@ -158,7 +236,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                     id = card.id,
                     deckId = deckId,
                     front = card.frontSide,
+                    frontImg = card.frontSideImg,
                     back = card.backSide,
+                    backImg = card.backSideImg,
                     difficulty = card.difficulty,
                     difficultyTimes = card.difficultyTimes,
                     dueTo = LocalDate.now().plusDays(3).toString()
@@ -179,7 +259,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                             id = card.id,
                             deckId = deckId,
                             front = card.frontSide,
+                            frontImg = card.frontSideImg,
                             back = card.backSide,
+                            backImg = card.backSideImg,
                             difficulty = card.difficulty,
                             difficultyTimes = card.difficultyTimes,
                             dueTo = LocalDate.now().plusDays(14).toString()
@@ -194,7 +276,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                         id = card.id,
                         deckId = deckId,
                         front = card.frontSide,
+                        frontImg = card.frontSideImg,
                         back = card.backSide,
+                        backImg = card.backSideImg,
                         difficulty = card.difficulty,
                         difficultyTimes = card.difficultyTimes,  // Ensure that it reflects the updated value
                         dueTo = LocalDate.now().plusDays(7).toString()
@@ -215,7 +299,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                             id = card.id,
                             deckId = deckId,
                             front = card.frontSide,
+                            frontImg = card.frontSideImg,
                             back = card.backSide,
+                            backImg = card.backSideImg,
                             difficulty = card.difficulty,
                             difficultyTimes = card.difficultyTimes,
                             dueTo = LocalDate.now().plusDays(30).toString()
@@ -231,7 +317,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                             id = card.id,
                             deckId = deckId,
                             front = card.frontSide,
+                            frontImg = card.frontSideImg,
                             back = card.backSide,
+                            backImg = card.backSideImg,
                             difficulty = card.difficulty,
                             difficultyTimes = card.difficultyTimes,
                             dueTo = LocalDate.now().plusDays(14).toString()
@@ -249,7 +337,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                         id = card.id,
                         deckId = deckId,
                         front = card.frontSide,
+                        frontImg = card.frontSideImg,
                         back = card.backSide,
+                        backImg = card.backSideImg,
                         difficulty = card.difficulty,
                         difficultyTimes = card.difficultyTimes,
                         dueTo = LocalDate.now().plusDays(30).toString()
@@ -266,7 +356,9 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
                     id = card.id,
                     deckId = deckId,
                     front = card.frontSide,
+                    frontImg = card.frontSideImg,
                     back = card.backSide,
+                    backImg = card.backSideImg,
                     difficulty = card.difficulty,
                     difficultyTimes = card.difficultyTimes,
                     dueTo = LocalDate.now().plusDays(7).toString()
@@ -275,6 +367,4 @@ class QuizScreenViewModel(val dao: CardsDao, val statsDao: StatsDao ,  val deckI
         }
         return card
     }
-
-
 }

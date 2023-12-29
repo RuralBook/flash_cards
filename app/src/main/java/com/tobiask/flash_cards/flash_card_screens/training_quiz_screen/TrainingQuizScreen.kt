@@ -10,6 +10,9 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -34,6 +38,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,13 +47,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -76,10 +84,12 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
             }
         })
 
-
-    var cards by remember {
-        mutableStateOf(viewModel.cards)
+    val cards by remember {
+        mutableStateOf(viewModel.trainingCards)
     }
+
+    val showFrontImage = viewModel.isFrontImgDisplayed.collectAsState().value
+    val showBackImage = viewModel.isBackImgDisplayed.collectAsState().value
 
     if (cards.isNotEmpty()) {
         Scaffold(topBar = {}) {
@@ -100,7 +110,8 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                     mutableStateOf(CardFace.Front)
                 }
 
-                val scrollState = rememberScrollState()
+                val scrollStateFront = rememberScrollState()
+                val scrollStateBack = rememberScrollState()
 
                 var frontIsQuestion by remember { mutableStateOf(true) }
 
@@ -108,6 +119,22 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                 var cardsNotEmpty by remember { mutableStateOf(true) }
                 if (cards.isEmpty()) {
                     cardsNotEmpty = false
+                }
+
+                if (showFrontImage){
+                    com.tobiask.flash_cards.flash_card_screens.quiz_screen.ShowImage(
+                        viewModel = viewModel,
+                        filename = card.frontSideImg,
+                        front = true
+                    )
+                }
+
+                if (showBackImage){
+                    com.tobiask.flash_cards.flash_card_screens.quiz_screen.ShowImage(
+                        viewModel = viewModel,
+                        filename = card.backSideImg,
+                        front = false
+                    )
                 }
 
 
@@ -168,16 +195,30 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                                                     .fillMaxSize(),
                                                 contentAlignment = Alignment.Center,
                                             ) {
-                                                card.let {
-                                                    Text(
-                                                        text = (if (frontIsQuestion) it.frontSide else it.backSide),
-                                                        fontSize = 22.5.sp,
-                                                        modifier = Modifier.verticalScroll(
-                                                            scrollState
+                                                Column(
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .padding(5.dp)
+                                                        .scrollable(
+                                                            scrollStateFront,
+                                                            Orientation.Vertical
+                                                        ),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.Center
+                                                ) {
+                                                    card.let {
+                                                        Text(
+                                                            text = (if (frontIsQuestion) it.frontSide else it.backSide),
+                                                            fontSize = 22.5.sp,
                                                         )
-                                                    )
+                                                    }
+                                                    if (card.frontSideImg != "") {
+                                                        Spacer(modifier = Modifier.height(20.dp))
+                                                        Button(onClick = { viewModel.showFrontImg() }) {
+                                                            Text(text = "Show Image")
+                                                        }
+                                                    }
                                                 }
-
                                             }
                                         },
                                         back = {
@@ -187,12 +228,29 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 if (cardFace == CardFace.Back) {
-                                                    card.let {
-                                                        Text(
-                                                            text = (if (frontIsQuestion) it.backSide else it.frontSide),
-                                                            fontSize = 22.5.sp
-                                                        )
-
+                                                    Column(
+                                                        Modifier
+                                                            .fillMaxSize()
+                                                            .padding(5.dp)
+                                                            .scrollable(
+                                                                scrollStateBack,
+                                                                Orientation.Vertical
+                                                            ),
+                                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                                        verticalArrangement = Arrangement.Center
+                                                    ) {
+                                                        card.let {
+                                                            Text(
+                                                                text = (if (frontIsQuestion) it.backSide else it.frontSide),
+                                                                fontSize = 22.5.sp,
+                                                            )
+                                                        }
+                                                        if (card.backSideImg != "") {
+                                                            Spacer(modifier = Modifier.height(20.dp))
+                                                            Button(onClick = { viewModel.showBackImg() }) {
+                                                                Text(text = "Show Image")
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }

@@ -1,11 +1,14 @@
 package com.tobiask.flash_cards.flash_card_screens.deck_screen_menu
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -27,11 +30,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.ModelTraining
 import androidx.compose.material.icons.filled.PlayCircleOutline
@@ -72,6 +78,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -367,10 +374,41 @@ fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
+    var isAddingFront by remember {
+        mutableStateOf(true)
+    }
     val textState = remember { mutableStateOf(TextFieldValue()) }
     val textState1 = remember { mutableStateOf(TextFieldValue()) }
+    val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val height = (configuration.screenHeightDp.dp / 4) * 2 // 4 = 5??
+    val height = (configuration.screenHeightDp.dp / 3) * 1 // 4 = 5??
+    var frontImage: String by remember {
+        mutableStateOf("")
+    }
+    val frontImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+            val text = viewModel.getRandomString(16)
+            viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
+
+            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
+                frontImage = text
+            }
+    }
+    var backImage: String by remember {
+        mutableStateOf("")
+    }
+    val backImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+            val text = viewModel.getRandomString(16)
+            viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
+
+            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
+                backImage = text
+            }
+    }
+
     Dialog(onDismissRequest = {
         viewModel.popUpAdd()
     }) {
@@ -394,49 +432,92 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.SpaceBetween) {
-                    OutlinedTextField(
-                        value = textState.value,
-                        onValueChange = { textState.value = it },
-                        label = { Text(text = stringResource(id = R.string.fronside)) },
-                        maxLines = 3,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    OutlinedTextField(
-                        value = textState1.value,
-                        onValueChange = { textState1.value = it },
-                        label = { Text(text = stringResource(id = R.string.backside)) },
-                        maxLines = 3,
-                    )
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Button(
-                        onClick = {
-                            if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
-                                viewModel.popUpAdd()
-                                viewModel.addCard(
-                                    Card(
-                                        front = textState.value.text,
-                                        frontImg = "",
-                                        back = textState1.value.text,
-                                        backImg = "",
-                                        deckId = deck.id,
-                                        folderRoute = 0,
-                                        dueTo = LocalDate.now().toString()
+                if (isAddingFront) {
+                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                        OutlinedTextField(
+                            value = textState.value,
+                            onValueChange = { textState.value = it },
+                            label = { Text(text = stringResource(id = R.string.fronside)) },
+                            maxLines = 3,
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row {
+                            IconButton(onClick = {
+                                frontImageLauncher.launch(
+                                    PickVisualMediaRequest(
+                                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
                                     )
                                 )
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    R.string.please_enter_a_name,
-                                    Toast.LENGTH_SHORT
+                            }) {
+                                Icon(
+                                    imageVector = if (frontImage == "") Icons.Default.Image else Icons.Default.Check,
+                                    contentDescription = "add Image"
                                 )
-                                    .show()
                             }
-                        }) {
-                        Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                        }
                     }
                 }
+                else {
+                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                        OutlinedTextField(
+                            value = textState1.value,
+                            onValueChange = { textState1.value = it },
+                            label = { Text(text = stringResource(id = R.string.backside)) },
+                            maxLines = 3,
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row {
+                            IconButton(
+                                onClick = {
+                                backImageLauncher.launch(
+                                    PickVisualMediaRequest(
+                                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
+                                )
+                            }) {
+                                Icon(
+                                    imageVector = if (backImage == "") Icons.Default.Image else Icons.Default.Check,
+                                    contentDescription = "add Image"
+                                )
+                            }
+                        }
+                    }
+                }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        if (!isAddingFront){
+                            IconButton(onClick = { isAddingFront = true }) {
+                                Icon(imageVector = Icons.Default.ArrowBack, contentDescription =null )
+                            }
+                        }
+                        Button(
+                            onClick = {
+                                if (isAddingFront){
+                                    isAddingFront = false
+                                } else if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
+                                    viewModel.popUpAdd()
+                                    viewModel.addCard(
+                                        Card(
+                                            front = textState.value.text,
+                                            frontImg = frontImage,
+                                            back = textState1.value.text,
+                                            backImg = backImage,
+                                            deckId = deck.id,
+                                            folderRoute = 0,
+                                            dueTo = LocalDate.now().toString()
+                                        )
+                                    )
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.please_enter_a_name,
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                                }
+                            }) {
+                            Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                        }
+                    }
             }
         }
     }
@@ -445,12 +526,46 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
+    var isAddingFront by remember {
+        mutableStateOf(true)
+    }
     val card = viewModel.editCard.collectAsState().value
     val textState = remember { mutableStateOf(TextFieldValue(card.front)) }
     val textState1 = remember { mutableStateOf(TextFieldValue(card.back)) }
     var resetDifficulty by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
-    val height = (configuration.screenHeightDp.dp / 4) * 2
+    val height = (configuration.screenHeightDp.dp / 3) * 1
+
+    var frontImage: String by remember {
+        mutableStateOf(card.frontImg)
+    }
+    val frontImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+        if (textState.value.text.isNotBlank()) {
+            val text = viewModel.getRandomString(16)
+            viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
+
+            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
+                frontImage = text
+            }
+        }
+    }
+    var backImage: String by remember {
+        mutableStateOf(card.backImg)
+    }
+    val backImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+        if (textState1.value.text.isNotBlank()) {
+            val text = viewModel.getRandomString(16)
+            viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
+
+            if(viewModel.loadBitmapFromInternalStorage(context, text) != null){
+                backImage = text
+            }
+        }
+    }
 
     Dialog(onDismissRequest = {
         viewModel.popUpEditCard()
@@ -468,38 +583,97 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         text = stringResource(id = R.string.edit_card),
                         style = MaterialTheme.typography.titleLarge
                     )
+                    Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it})
                 }
-                OutlinedTextField(
-                    value = textState.value,
-                    onValueChange = { textState.value = it },
-                    label = { Text(text = stringResource(id = R.string.fronside)) },
-                    maxLines = 4,
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedTextField(
-                    value = textState1.value,
-                    onValueChange = { textState1.value = it },
-                    label = { Text(text = stringResource(id = R.string.backside)) },
-                    maxLines = 4,
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(verticalAlignment = Alignment.CenterVertically){
-                    Text(text = stringResource(id = R.string.reset_difficulty))
-                    Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
+                if (isAddingFront) {
+                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                        OutlinedTextField(
+                            value = textState.value,
+                            onValueChange = { textState.value = it },
+                            label = { Text(text = stringResource(id = R.string.fronside)) },
+                            maxLines = 3,
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row {
+                            IconButton(onClick = {
+                                frontImageLauncher.launch(
+                                    PickVisualMediaRequest(
+                                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
+                                )
+                            }) {
+                                Icon(
+                                    imageVector = if (frontImage == "") Icons.Default.Image else Icons.Default.Check,
+                                    contentDescription = "add Image"
+                                )
+                            }
+                            if (frontImage != "") {
+                                Button(onClick = {
+                                    viewModel.deleteImageFromInternalStorage(context, frontImage)
+                                    frontImage = ""
+                                }) {
+                                    Text(text = "DELETE IMAGE")
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                        OutlinedTextField(
+                            value = textState1.value,
+                            onValueChange = { textState1.value = it },
+                            label = { Text(text = stringResource(id = R.string.backside)) },
+                            maxLines = 3,
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row {
+                            IconButton(
+                                onClick = {
+                                    backImageLauncher.launch(
+                                        PickVisualMediaRequest(
+                                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                        )
+                                    )
+                                }) {
+                                Icon(
+                                    imageVector = if (backImage == "") Icons.Default.Image else Icons.Default.Check,
+                                    contentDescription = "add Image"
+                                )
+                            }
+                            if (backImage != "") {
+                                Button(onClick = {
+                                    viewModel.deleteImageFromInternalStorage(context, backImage)
+                                    backImage = ""
+                                }) {
+                                    Text(text = "DELETE IMAGE")
+                                }
+                            }
+                        }
+                    }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    if (!isAddingFront){
+                        IconButton(onClick = { isAddingFront = true }) {
+                            Icon(imageVector = Icons.Default.ArrowBack, contentDescription =null )
+                        }
+                    }
                     Button(onClick = {
-                        if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
+                        if (isAddingFront){
+                            isAddingFront = false
+                        } else if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
                             val updateCard = Card(
                                 id = card.id,
                                 deckId = card.deckId,
                                 front = textState.value.text,
+                                frontImg = frontImage,
                                 back = textState1.value.text,
+                                backImg = backImage,
                                 folderRoute = 0,
                                 difficulty = if (!resetDifficulty) card.difficulty else 0,
                                 difficultyTimes = if (!resetDifficulty) card.difficultyTimes else 0,

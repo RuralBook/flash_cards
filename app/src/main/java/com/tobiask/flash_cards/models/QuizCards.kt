@@ -5,9 +5,9 @@ import android.net.Uri
 data class QuizCards(
     val id: Int,
     val frontSide: String,
-    val frontSideImg: Uri?,
+    val frontSideImg: String,
     val backSide: String,
-    val backSideImg: Uri?,
+    val backSideImg: String,
 
     val oldDifficulty: Int,
     var difficulty: Int,

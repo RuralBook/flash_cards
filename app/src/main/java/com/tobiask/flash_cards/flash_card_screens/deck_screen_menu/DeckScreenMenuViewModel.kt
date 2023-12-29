@@ -1,5 +1,8 @@
 package com.tobiask.flash_cards.flash_card_screens.deck_screen_menu
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobiask.flash_cards.models.QuizCards
@@ -11,7 +14,11 @@ import com.tobiask.flash_cards.database.StatsDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.time.LocalDate
+import kotlin.random.Random
 
 class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val statsDao: StatsDao, val deckId: Int) :
     ViewModel() {
@@ -41,21 +48,15 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
     val showPopUpEditCard = _showPopUpEditCard.asStateFlow()
 
 
-    fun editCardValue(card: Card) {
-        _editCard.value = card
-    }
+    fun editCardValue(card: Card) { _editCard.value = card }
 
-    fun popUpAdd() {
-        _showPopUpAdd.value = !_showPopUpAdd.value
-    }
+    fun popUpAdd() {_showPopUpAdd.value = !_showPopUpAdd.value }
 
-    fun popUpEdit() {
-        _showPopUpEdit.value = !_showPopUpEdit.value
-    }
 
-    fun popUpEditCard() {
-        _showPopUpEditCard.value = !_showPopUpEditCard.value
-    }
+
+    fun popUpEdit() {_showPopUpEdit.value = !_showPopUpEdit.value }
+
+    fun popUpEditCard() { _showPopUpEditCard.value = !_showPopUpEditCard.value }
 
     fun addDeck(deck: Deck) {
         viewModelScope.launch {
@@ -91,9 +92,9 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
                 val buffer = QuizCards(
                     id = card.id,
                     frontSide = card.front,
-                    frontSideImg = null,
+                    frontSideImg = card.frontImg,
                     backSide = card.back,
-                    backSideImg = null,
+                    backSideImg = card.backImg,
                     oldDifficulty = card.difficulty,
                     difficulty = card.difficulty,
                     difficultyTimes = card.difficultyTimes
@@ -102,5 +103,36 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
             }
         }
         return quizCards.shuffled()
+    }
+
+    fun getRandomString(length: Int) : String {
+        val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+        return (1..length)
+            .map { allowedChars.random() }
+            .joinToString("")
+    }
+
+    fun saveBitmapToInternalStorage(context: Context, bitmap: Bitmap, filename: String) {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        val byteArray = stream.toByteArray()
+        val file = File(context.filesDir, filename)
+        val outputStream = FileOutputStream(file)
+        outputStream.write(byteArray)
+        outputStream.close()
+    }
+
+    fun loadBitmapFromInternalStorage(context: Context, filename: String): Bitmap? {
+        val file = File(context.filesDir, filename)
+        return if (file.exists()) {
+            BitmapFactory.decodeFile(file.path)
+        } else {
+            null
+        }
+    }
+
+    fun deleteImageFromInternalStorage(context: Context, filename: String): Boolean {
+        val file = File(context.filesDir, filename)
+        return file.delete()
     }
 }
