@@ -33,6 +33,7 @@ import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreen
 import com.tobiask.flash_cards.flash_card_screens.training_quiz_screen.TrainingQuizScreen
 import com.tobiask.flash_cards.flash_card_screens.deck_screen_menu.DeckScreenMenu
 import com.tobiask.flash_cards.flash_card_screens.exportImportScreen.ExportImportScreen
+import com.tobiask.flash_cards.flash_card_screens.onboarding_screen.OnboardingPage
 import com.tobiask.flash_cards.flash_card_screens.settings_screen.SettingsScreen
 import com.tobiask.flash_cards.flash_card_screens.statistics_screen.StatisticsScreen
 import com.tobiask.flash_cards.ui.theme.Flash_cardsTheme
@@ -56,7 +57,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
             Flash_cardsTheme {
                 val context = LocalContext.current
                 val db by lazy {
@@ -80,6 +80,9 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = Screen.MainScreen.route){
                         composable(route = Screen.MainScreen.route) {
                             MainScreen(navController, db.decksDao, db.folderDao, db.cardsDao, db.statsDao)
+                        }
+                        composable(route = Screen.OnboardingScreen.route){
+                            OnboardingPage(navController)
                         }
                         composable(route = "${Screen.DeckScreen.route}?id={id}" ,arguments = listOf(
                             navArgument("id") {

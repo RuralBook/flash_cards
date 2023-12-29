@@ -104,10 +104,6 @@ fun MainScreen(
         }
     )
 
-    rememberScrollState()
-    val popupStateAdd by viewModel.showPopUp.collectAsState()
-    val mainDecks = viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
-    val folder = viewModel.folderDao.getAllFolderById(0).collectAsState(initial = emptyList())
     val stats = viewModel.stats.collectAsState(
         initial = listOf(
             Stats(
@@ -120,10 +116,15 @@ fun MainScreen(
             )
         )
     )
-
     if (stats.value.isEmpty()) {
         viewModel.insertStatsFirstTime()
+        navController.navigate(Screen.OnboardingScreen.route)
     }
+
+    rememberScrollState()
+    val popupStateAdd by viewModel.showPopUp.collectAsState()
+    val mainDecks = viewModel.dao.getAllDecksWithParent(0).collectAsState(initial = emptyList())
+    val folder = viewModel.folderDao.getAllFolderById(0).collectAsState(initial = emptyList())
 
     if (popupStateAdd) {
         AddDeck(viewModel = viewModel, context)
