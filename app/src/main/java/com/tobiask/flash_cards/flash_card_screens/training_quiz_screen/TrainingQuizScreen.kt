@@ -33,6 +33,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -66,6 +67,7 @@ import com.tobiask.flash_cards.database.StatsDao
 import com.tobiask.flash_cards.ui_elements.CardFace
 import com.tobiask.flash_cards.ui_elements.FlipCard
 import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreenViewModel
+import dev.jeziellago.compose.markdowntext.MarkdownText
 
 
 @SuppressLint("MutableCollectionMutableState", "UnrememberedMutableState")
@@ -92,7 +94,7 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
     val showBackImage = viewModel.isBackImgDisplayed.collectAsState().value
 
     if (cards.isNotEmpty()) {
-        Scaffold(topBar = {}) {
+        Scaffold(topBar = {}) { it ->
             Column(
                 Modifier
                     .padding(it)
@@ -207,9 +209,11 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                                                     verticalArrangement = Arrangement.Center
                                                 ) {
                                                     card.let {
-                                                        Text(
-                                                            text = (if (frontIsQuestion) it.frontSide else it.backSide),
-                                                            fontSize = 22.5.sp,
+                                                        MarkdownText(
+                                                            fontResource = R.font.nunito_regular,
+                                                            markdown = (if (frontIsQuestion) it.frontSide else it.backSide),
+                                                            fontSize = 17.5.sp,
+                                                            color = MaterialTheme.colorScheme.onBackground
                                                         )
                                                     }
                                                     if (card.frontSideImg != "") {
@@ -240,9 +244,10 @@ fun TrainingQuizScreen(id: Int, dao: CardsDao, statsDao: StatsDao) {
                                                         verticalArrangement = Arrangement.Center
                                                     ) {
                                                         card.let {
-                                                            Text(
-                                                                text = (if (frontIsQuestion) it.backSide else it.frontSide),
-                                                                fontSize = 22.5.sp,
+                                                            MarkdownText(
+                                                                markdown = (if (frontIsQuestion) it.backSide else it.frontSide),
+                                                                fontSize = 17.5.sp,
+                                                                color = MaterialTheme.colorScheme.onBackground
                                                             )
                                                         }
                                                         if (card.backSideImg != "") {

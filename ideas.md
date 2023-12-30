@@ -1,8 +1,8 @@
 # Ideas
 
-### <ins> Version 1.2.5: </ins>
-  - [ ] Add Settings Screen!
-    - [ ] Enable Notifications
-    - [ ] Display Version
-    - [ ] Display Soon ideas
-    - [ ] VLLT:  Enter Name
+### <ins> Version 1.3.5: </ins>
+  - [ ] Display Version
+  - [ ] Personalization options
+
+### <ins> Version 1.4.0 </ins>
+  - [ ] Enable Notifications

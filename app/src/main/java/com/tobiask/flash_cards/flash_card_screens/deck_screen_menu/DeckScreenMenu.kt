@@ -28,7 +28,9 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material3.Switch
@@ -44,6 +46,8 @@ import androidx.compose.material.icons.filled.ModelTraining
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -60,6 +64,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -72,6 +77,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -95,6 +103,7 @@ import com.tobiask.flash_cards.flash_card_screens.quiz_screen.QuizScreenViewMode
 import com.tobiask.flash_cards.navigation.Screen
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.asFlow
 import java.io.File
 import java.time.LocalDate
@@ -153,7 +162,8 @@ fun DeckScreenMenu(
                     text = deck.value.name,
                     style = MaterialTheme.typography.headlineLarge,
                     textDecoration = TextDecoration.Underline,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontFamily = FontFamily(Font(R.font.nunito_bold))
                 )
             }
             Row(
@@ -235,7 +245,8 @@ fun DeckScreenMenu(
                 ) { _, row ->
                     RevealSwipe(modifier = Modifier.padding(top = 5.dp, bottom = 15.dp),
                         directions = setOf(
-                            RevealDirection.EndToStart
+                            RevealDirection.EndToStart,
+                            RevealDirection.StartToEnd
                         ),
                         hiddenContentEnd = {
                             Icon(
@@ -248,7 +259,21 @@ fun DeckScreenMenu(
                         backgroundCardEndColor = MaterialTheme.colorScheme.secondary,
                         onBackgroundEndClick = {
                             viewModel.delOneCard(row)
-                        }) {
+                        },
+                        hiddenContentStart = {
+                            Icon(
+                                modifier = Modifier.padding(horizontal = 25.dp),
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        },
+                        backgroundCardStartColor = MaterialTheme.colorScheme.primary,
+                        onBackgroundStartClick = {
+                            viewModel.editCardValue(row)
+                            viewModel.popUpEditCard()
+                        }
+                    ) {
                         CardCardDeckScreen(card = row, viewModel, context)
                     }
                 }
@@ -257,10 +282,10 @@ fun DeckScreenMenu(
     })
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: Context) {
 
+    val scroll = rememberScrollState()
     val showFrontImage = viewModel.isFrontImgDisplayed.collectAsState().value
     val showBackImage = viewModel.isBackImgDisplayed.collectAsState().value
 
@@ -292,38 +317,52 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
         mutableStateOf(true)
     }
 
-    val haptic = LocalHapticFeedback.current
-
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .requiredHeight(175.dp)
             .padding(bottom = 10.dp),
+
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(
             Modifier
                 .fillMaxSize()
-                .combinedClickable(onClick = {
-                    viewModel.editCardValue(card)
-                    viewModel.popUpEditCard()
-                }, onLongClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    front = !front
-                })
+                .clickable { front = !front }
+
         ) {
             Column(
-                Modifier.fillMaxSize(),
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scroll),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    Text(
-                        modifier = Modifier.padding(start = 20.dp, top = 20.dp),
-                        text = if (front) card.front else card.back,
-                        fontSize = 25.sp,
-                        fontStyle = if (front) FontStyle.Normal else FontStyle.Italic
-                    )
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (front) {
+                        MarkdownText(
+                            fontResource = R.font.nunito_regular,
+                            modifier = Modifier
+                                .padding(10.dp),
+                            markdown = card.front,
+                            fontSize = 20.sp,
+                            onClick = { front = false },
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    } else {
+                        MarkdownText(
+                            fontResource = R.font.nunito_italic,
+                            modifier = Modifier
+                                .padding(10.dp),
+                            markdown = card.back,
+                            fontSize = 20.sp,
+                            onClick = { front = true },
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                 }
                 if (front) {
                     if (card.frontImg != "") {
@@ -348,7 +387,7 @@ fun CardCardDeckScreen(card: Card, viewModel: DeckScreenMenuViewModel, context: 
 }
 
 // POP-UPs
-//--------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditDeck(viewModel: DeckScreenMenuViewModel, context: Context, deck: Deck) {
@@ -419,8 +458,8 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, deck: Deck) {
     var isAddingFront by remember {
         mutableStateOf(true)
     }
-    val textState = remember { mutableStateOf(TextFieldValue()) }
-    val textState1 = remember { mutableStateOf(TextFieldValue()) }
+    val textState = remember { mutableStateOf(TextFieldValue(text = "# ")) }
+    val textState1 = remember { mutableStateOf(TextFieldValue(text = "# ")) }
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val height = (configuration.screenHeightDp.dp / 5) * 2 // 4 = 5?? TODO (V1.3.5): Improve space
@@ -431,7 +470,7 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, deck: Deck) {
         ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri);
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
             val text = viewModel.getRandomString(16)
             viewModel.saveBitmapToInternalStorage(context = context, bitmap, text)
 
@@ -540,7 +579,7 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, deck: Deck) {
                         onClick = {
                             if (isAddingFront) {
                                 isAddingFront = false
-                            } else if (textState.value.text.isNotEmpty() && textState1.value.text.isNotEmpty()) {
+                            } else if (textState.value.text != "# " || textState.value.text != "#" || textState.value.text.isNotBlank() && textState1.value.text != "# " || textState1.value.text != "#" || textState1.value.text.isNotBlank()) {
                                 viewModel.popUpAdd()
                                 viewModel.addCard(
                                     Card(
@@ -570,7 +609,6 @@ fun AddCard(viewModel: DeckScreenMenuViewModel, deck: Deck) {
                             },
                             contentDescription = null
                         )
-
                     }
                 }
             }
@@ -716,7 +754,11 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
                         }
                     }
                 }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly){
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
                     Text(text = stringResource(id = R.string.reset_difficulty))
                     Switch(checked = resetDifficulty, onCheckedChange = { resetDifficulty = it })
                 }
@@ -768,14 +810,12 @@ fun EditCard(viewModel: DeckScreenMenuViewModel, context: Context) {
 @Composable
 fun ShowImage(viewModel: DeckScreenMenuViewModel, filename: String, front: Boolean) {
     val context = LocalContext.current
+    val image =
+        viewModel.loadBitmapFromInternalStorage(context, filename)
     Dialog(onDismissRequest = { if (front) viewModel.showFrontImg() else viewModel.showBackImg() }) {
         Card() {
-            val image =
-                viewModel.loadBitmapFromInternalStorage(context, filename)
             if (image != null) {
                 Image(bitmap = image.asImageBitmap(), contentDescription = null)
-            } else {
-                Text(text = stringResource(id = R.string.image_not_found))
             }
         }
     }

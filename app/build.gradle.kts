@@ -14,7 +14,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 4
-        versionName = "1.3.0-beta01"
+        versionName = "1.3.0-beta02"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -25,8 +25,8 @@ android {
     buildTypes {
 
         debug {
-            //applicationIdSuffix = ".debug"
-            //versionNameSuffix = "-debug"
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
 
         release {
@@ -75,6 +75,12 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    //Markdown
+    implementation ("com.github.jeziellago:compose-markdown:0.3.7")
+
+    //OkHttp
+    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Navigation:
     implementation ("androidx.navigation:navigation-compose:2.7.6")

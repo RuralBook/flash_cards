@@ -8,6 +8,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -37,7 +41,7 @@ import com.tobiask.flash_cards.database.FolderDao
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(cardsDao: CardsDao, decksDAO: DecksDAO, folderDao: FolderDao){
+fun SettingsScreen(cardsDao: CardsDao, decksDAO: DecksDAO, folderDao: FolderDao) {
     val context = LocalContext.current
     val viewModel = viewModel<SettingsScreenViewModel>(
         factory =
@@ -56,25 +60,39 @@ fun SettingsScreen(cardsDao: CardsDao, decksDAO: DecksDAO, folderDao: FolderDao)
     Scaffold(
         topBar = {
             TopAppBar(title = {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
-                Text(text = stringResource(id = R.string.settings), style = MaterialTheme.typography.headlineLarge)
-            }})
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.settings),
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                }
+            })
         }
-    ){it
+    ) {
+        it
         Column(
             Modifier
-                .padding(it)
+                .padding(
+                    top = it.calculateTopPadding(),
+                    bottom = it.calculateBottomPadding(),
+                    start = 25.dp + it.calculateStartPadding(layoutDirection = LayoutDirection.Ltr),
+                    end = 25.dp + it.calculateEndPadding(layoutDirection = LayoutDirection.Ltr)
+                )
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ){
+            horizontalAlignment = Alignment.Start
+        ) {
             Button(onClick = { viewModel.exportDatabase() }) {
                 Text(text = stringResource(id = R.string.backup))
             }
-            Button(onClick = { launcher.launch("*/*") }) {
-                Text(text = stringResource(id = R.string.import_str))
-            }
+
             Column {
+                Button(onClick = { launcher.launch("*/*") }) {
+                    Text(text = stringResource(id = R.string.import_str))
+                }
                 Text(text = stringResource(id = R.string.important_note))
                 Text(text = stringResource(id = R.string.full_export_note))
             }

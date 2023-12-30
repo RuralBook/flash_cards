@@ -58,6 +58,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -117,6 +119,7 @@ fun MainScreen(
             )
         )
     )
+
     if (stats.value.isEmpty()) {
         viewModel.insertStatsFirstTime()
         navController.navigate(Screen.OnboardingScreen.route)
@@ -158,7 +161,6 @@ fun MainScreen(
                             contentDescription = null
                         )
                     }
-
 
                     Text(
                         text = stringResource(id = R.string.welcome),
@@ -315,20 +317,22 @@ fun DeckCard(deck: Deck, navController: NavController, viewModel: MainScreenView
                         Text(
                             modifier = Modifier.padding(start = 20.dp, top = 20.dp),
                             text = deck.name,
-                            fontSize = 25.sp,
-                            fontStyle = FontStyle.Normal
+                            fontSize = 35.sp,
+                            fontFamily = FontFamily(Font(R.font.nunito_bold))
                         )
                     }
                 }
-                Row {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                        Text(
-                            modifier = Modifier.padding(bottom = 20.dp),
-                            text = counter.toString(),
-                            fontSize = 20.sp,
-                            color = Color.Red,
-                            textDecoration = TextDecoration.Underline
-                        )
+                if (counter < 0) {
+                    Row {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            Text(
+                                modifier = Modifier.padding(bottom = 20.dp),
+                                text = counter.toString(),
+                                fontSize = 20.sp,
+                                color = Color.Red,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
                     }
                 }
             }
@@ -370,7 +374,8 @@ fun FolderCard(folder: Folder, navController: NavController) {
                         Text(
                             modifier = Modifier.padding(top = 20.dp),
                             text = folder.name,
-                            fontSize = 25.sp,
+                            fontSize = 35.sp,
+                            fontFamily = FontFamily(Font(R.font.nunito_bold)),
                             textDecoration = TextDecoration.Underline
                         )
                     }

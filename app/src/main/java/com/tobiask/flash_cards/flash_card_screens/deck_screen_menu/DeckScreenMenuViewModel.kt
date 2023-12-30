@@ -3,6 +3,7 @@ package com.tobiask.flash_cards.flash_card_screens.deck_screen_menu
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tobiask.flash_cards.models.QuizCards
@@ -18,6 +19,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
+import kotlin.math.min
 import kotlin.random.Random
 
 class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val statsDao: StatsDao, val deckId: Int) :
@@ -116,14 +118,31 @@ class DeckScreenMenuViewModel(val dao: DecksDAO, val daoCards: CardsDao, val sta
     }
 
     fun saveBitmapToInternalStorage(context: Context, bitmap: Bitmap, filename: String) {
+
+        val scaledBitmap = scaleBitmap(bitmap, 1500, 1500 )
+
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        scaledBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         val byteArray = stream.toByteArray()
+
         val file = File(context.filesDir, filename)
         val outputStream = FileOutputStream(file)
         outputStream.write(byteArray)
         outputStream.close()
     }
+
+    private fun scaleBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        val originalWidth = bitmap.width
+        val originalHeight = bitmap.height
+
+        val scale = min(maxWidth.toFloat() / originalWidth, maxHeight.toFloat() / originalHeight)
+
+        val matrix = Matrix()
+        matrix.postScale(scale, scale)
+
+        return Bitmap.createBitmap(bitmap, 0, 0, originalWidth, originalHeight, matrix, true)
+    }
+
 
     fun loadBitmapFromInternalStorage(context: Context, filename: String): Bitmap? {
         val file = File(context.filesDir, filename)
